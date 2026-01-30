@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사과 게임 (Fruit Box)</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="app">
+    <div class="game-container">
+      <!-- 상단 UI -->
+      <div class="game-header">
+        <div class="score-display">
+          <span class="label">점수:</span>
+          <span id="score">0</span>
+        </div>
+        <div class="timer-display">
+          <span class="label">시간:</span>
+          <span id="timer">120</span>초
+        </div>
+        <button id="muteBtn" class="mute-btn" title="음소거 토글">🔊</button>
+      </div>
+
+      <!-- 게임 보드 Canvas -->
+      <canvas id="gameCanvas" width="850" height="500"></canvas>
+
+      <!-- 선택 영역 합계 표시 -->
+      <div id="sumDisplay" class="sum-display"></div>
+    </div>
+
+    <!-- 게임 오버 모달 -->
+    <div id="gameOverModal" class="modal hidden">
+      <div class="modal-content">
+        <h2>게임 종료!</h2>
+        <p class="final-score">최종 점수: <span id="finalScore">0</span></p>
+        <button id="restartBtn" class="restart-btn">다시 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
+
