@@ -14,17 +14,31 @@
     <div class="game-container">
       <!-- 상단 UI / 사이드바 (가로모드 시) -->
       <div class="game-header">
-        <div class="score-display">
-          <span class="label">점수:</span>
-          <span id="score">0</span>
+        <div class="game-header-top">
+          <div class="score-display">
+            <span class="label">점수:</span>
+            <span id="score">0</span>
+          </div>
+          <div class="timer-display">
+            <span class="label">시간:</span>
+            <span id="timer">120</span>초
+          </div>
+          <div class="header-buttons">
+            <button id="fullscreenBtn" class="icon-btn" title="전체화면">⛶</button>
+            <button id="muteBtn" class="icon-btn" title="음소거 토글">🔊</button>
+          </div>
         </div>
-        <div class="timer-display">
-          <span class="label">시간:</span>
-          <span id="timer">120</span>초
-        </div>
-        <div class="header-buttons">
-          <button id="fullscreenBtn" class="icon-btn" title="전체화면">⛶</button>
-          <button id="muteBtn" class="icon-btn" title="음소거 토글">🔊</button>
+        
+        <div class="game-header-bottom">
+          <!-- 가로모드에서는 여기에 버튼들이 표시됨 -->
+          <button id="restartBtnSidebar" class="restart-btn-floating" title="다시 시작">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+          </button>
+          <button id="debugToggleBtnSidebar" class="debug-toggle-btn" title="테스트 모드">🔧</button>
         </div>
       </div>
 

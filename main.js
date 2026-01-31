@@ -303,17 +303,23 @@ function calculateCanvasSize() {
 function resizeCanvas() {
   const size = calculateCanvasSize();
   
-  // 캔버스 내부 해상도 설정
-  canvas.width = size.width;
-  canvas.height = size.height;
+  // 레티나 디스플레이 대응 (devicePixelRatio 고려)
+  const dpr = window.devicePixelRatio || 1;
   
-  // CSS 크기는 같게 (1:1 비율)
+  // 캔버스 내부 해상도 설정 (고해상도로)
+  canvas.width = size.width * dpr;
+  canvas.height = size.height * dpr;
+  
+  // CSS 크기는 논리적 크기로
   canvas.style.width = size.width + 'px';
   canvas.style.height = size.height + 'px';
   
+  // 컨텍스트 스케일 조정
+  ctx.scale(dpr, dpr);
+  
   // 셀 크기 업데이트
   CELL_SIZE = size.cellSize;
-  canvasScale = 1; // 내부 해상도와 CSS 크기가 같으므로 1:1
+  canvasScale = dpr;
   
   // 컨페티 캔버스도 업데이트
   confettiCanvas.width = window.innerWidth;
@@ -342,6 +348,8 @@ const sumDisplay = document.getElementById('sumDisplay');
 const muteBtn = document.getElementById('muteBtn');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const restartBtnHeader = document.getElementById('restartBtnHeader');
+const restartBtnSidebar = document.getElementById('restartBtnSidebar');
+const debugToggleBtnSidebar = document.getElementById('debugToggleBtnSidebar');
 const gameOverModal = document.getElementById('gameOverModal');
 const finalScoreDisplay = document.getElementById('finalScore');
 const highScoreDisplay = document.getElementById('highScore');
@@ -1141,9 +1149,17 @@ restartBtnHeader.addEventListener('click', () => {
   startGame();
 });
 
+restartBtnSidebar.addEventListener('click', () => {
+  startGame();
+});
+
 // ========== 디버그 기능 ==========
 // 디버그 패널 토글
 debugToggleBtn.addEventListener('click', () => {
+  debugPanel.classList.toggle('hidden');
+});
+
+debugToggleBtnSidebar.addEventListener('click', () => {
   debugPanel.classList.toggle('hidden');
 });
 
