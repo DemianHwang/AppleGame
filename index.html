@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>사과 게임 (Fruit Box)</title>
+  <script type="module" crossorigin src="/AppleGame/assets/index-n97StOPm.js"></script>
+  <link rel="stylesheet" crossorigin href="/AppleGame/assets/index-sF3F3xv4.css">
+</head>
+<body>
+  <div id="app">
+    <div class="game-container">
+      <!-- 상단 UI -->
+      <div class="game-header">
+        <div class="score-display">
+          <span class="label">점수:</span>
+          <span id="score">0</span>
+        </div>
+        <div class="timer-display">
+          <span class="label">시간:</span>
+          <span id="timer">120</span>초
+        </div>
+        <button id="muteBtn" class="mute-btn" title="음소거 토글">🔊</button>
+      </div>
+
+      <!-- 게임 보드 Canvas (크기는 JS에서 동적으로 설정) -->
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- 선택 영역 합계 표시 -->
+      <div id="sumDisplay" class="sum-display"></div>
+      
+      <!-- 다시 시작 버튼 (왼쪽 하단 고정) -->
+      <button id="restartBtnHeader" class="restart-btn-floating" title="다시 시작">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 게임 오버 모달 -->
+    <div id="gameOverModal" class="modal hidden">
+      <div class="modal-content">
+        <h2 id="gameOverTitle">게임 종료!</h2>
+        <p class="new-record-label hidden" id="newRecordLabel">🎉 NEW RECORD! 🎉</p>
+        <p class="final-score">최종 점수: <span id="finalScore">0</span></p>
+        <p class="high-score">최고 점수: <span id="highScore">0</span></p>
+        <button id="restartBtn" class="restart-btn">다시 시작</button>
+      </div>
+    </div>
+
+    <!-- 컨페티 전용 캔버스 (최상위 레이어) -->
+    <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+    <!-- 세로 모드 안내 메시지 (모바일만) -->
+    <div id="orientationWarning" class="orientation-warning hidden">
+      <div class="orientation-content">
+        <div class="rotate-icon">📱↻</div>
+        <p>가로 모드로 전환하면 더 편하게 플레이할 수 있어요!</p>
+      </div>
+      <button id="closeOrientationWarning" class="orientation-close" title="닫기">×</button>
+    </div>
+
+    <!-- 디버그 패널 -->
+    <div id="debugPanel" class="debug-panel hidden">
+      <div class="debug-header">🔧 테스트 모드</div>
+      <button id="resetHighScoreBtn" class="debug-btn">🗑️ 최고 점수 리셋</button>
+      <button id="forceGameOverBtn" class="debug-btn">⏹️ 즉시 게임 종료</button>
+      <button id="testConfettiBtn" class="debug-btn">🎉 컨페티 테스트</button>
+      <button id="autoRemoveBtn" class="debug-btn">🤖 자동 제거 10번</button>
+      <button id="toggleProfilingBtn" class="debug-btn">📊 프로파일링 OFF</button>
+      <button id="showStatsBtn" class="debug-btn">📈 성능 통계 보기</button>
+      <button id="resetOrientationWarningBtn" class="debug-btn">📱 세로모드 안내 리셋</button>
+    </div>
+    
+    <!-- 디버그 토글 버튼 -->
+    <button id="debugToggleBtn" class="debug-toggle-btn" title="테스트 모드">🔧</button>
+  </div>
+
+</body>
+</html>
+
