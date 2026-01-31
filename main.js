@@ -261,9 +261,9 @@ function calculateCanvasSize() {
     // 사이드바 너비: header의 실제 너비 또는 기본값 100px
     const sidebarWidth = header ? header.offsetWidth : 100;
     
-    // 하단 safe area (제스처 영역) 가져오기
+    // 하단 safe area (제스처 영역) 가져오기 - 2배 + 추가 여백
     const safeAreaBottomStr = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom');
-    const safeAreaBottom = parseFloat(safeAreaBottomStr) || 0;
+    const safeAreaBottom = (parseFloat(safeAreaBottomStr) || 0) * 2 + 20;
     
     // 가로모드에서는 뷰포트 높이에서 safe area 제외
     availableWidth = viewportWidth - sidebarWidth;
