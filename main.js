@@ -349,6 +349,8 @@ const fullscreenBtn = document.getElementById('fullscreenBtn');
 const restartBtnHeader = document.getElementById('restartBtnHeader');
 const restartBtnSidebar = document.getElementById('restartBtnSidebar');
 const debugToggleBtnSidebar = document.getElementById('debugToggleBtnSidebar');
+const startModal = document.getElementById('startModal');
+const startGameBtn = document.getElementById('startGameBtn');
 const gameOverModal = document.getElementById('gameOverModal');
 const finalScoreDisplay = document.getElementById('finalScore');
 const highScoreDisplay = document.getElementById('highScore');
@@ -1155,6 +1157,12 @@ function updateFullscreenButton() {
   }, 100);
 }
 
+// ========== 시작 버튼 ==========
+startGameBtn.addEventListener('click', () => {
+  startModal.classList.add('hidden');
+  startGame();
+});
+
 // ========== 재시작 버튼 ==========
 restartBtn.addEventListener('click', () => {
   startGame();
@@ -1430,6 +1438,8 @@ if (closeOrientationWarningBtn) {
 // 초기 체크
 checkOrientation();
 
-// ========== 게임 시작 ==========
-startGame();
+// ========== 초기 렌더링 (게임은 시작 버튼 클릭 시 시작) ==========
+// 시작 화면에서도 보드를 미리 보여주기 위한 초기 렌더링
+initBoard();
+render();
 

@@ -360,6 +360,95 @@ body {
   display: none;
 }
 
+/* 시작 화면 모달 */
+.start-modal {
+  min-width: 400px;
+  max-width: 90vw;
+}
+
+.game-title {
+  font-size: 48px;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 800;
+}
+
+.game-subtitle {
+  font-size: 20px;
+  color: #666;
+  margin-bottom: 32px;
+  font-weight: 500;
+}
+
+.game-rules {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.game-rules p {
+  margin: 12px 0;
+  font-size: 16px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 16px 48px;
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.start-btn:active {
+  transform: translateY(0);
+}
+
+/* 모바일 시작 화면 */
+@media (max-width: 1024px) {
+  .start-modal {
+    min-width: 300px;
+    padding: 32px 24px;
+  }
+  
+  .game-title {
+    font-size: 36px;
+  }
+  
+  .game-subtitle {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .game-rules {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .game-rules p {
+    font-size: 14px;
+    margin: 8px 0;
+  }
+  
+  .start-btn {
+    padding: 14px 40px;
+    font-size: 18px;
+  }
+}
+
 .modal-content {
   background: white;
   padding: 40px;
