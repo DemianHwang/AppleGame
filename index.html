@@ -20,6 +20,7 @@
           <span id="timer">120</span>초
         </div>
         <button id="muteBtn" class="mute-btn" title="음소거 토글">🔊</button>
+        <button id="restartBtnHeader" class="restart-btn-header">🔄 다시 시작</button>
       </div>
 
       <!-- 게임 보드 Canvas -->
@@ -32,8 +33,10 @@
     <!-- 게임 오버 모달 -->
     <div id="gameOverModal" class="modal hidden">
       <div class="modal-content">
-        <h2>게임 종료!</h2>
+        <h2 id="gameOverTitle">게임 종료!</h2>
+        <p class="new-record-label hidden" id="newRecordLabel">🎉 NEW RECORD! 🎉</p>
         <p class="final-score">최종 점수: <span id="finalScore">0</span></p>
+        <p class="high-score">최고 점수: <span id="highScore">0</span></p>
         <button id="restartBtn" class="restart-btn">다시 시작</button>
       </div>
     </div>

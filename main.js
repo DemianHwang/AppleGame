@@ -28,6 +28,22 @@ let hintTimeout = null;
 let particles = [];
 const MAX_PARTICLES = 200;
 
+// 컨페티 상태
+let confettiParticles = [];
+
+// 최고 점수
+let highScore = 0;
+
+// ========== LocalStorage 관리 ==========
+function loadHighScore() {
+  const saved = localStorage.getItem('appleGameHighScore');
+  return saved ? parseInt(saved, 10) : 0;
+}
+
+function saveHighScore(score) {
+  localStorage.setItem('appleGameHighScore', score.toString());
+}
+
 // ========== Particle 클래스 ==========
 class Particle {
   constructor(x, y, color) {
@@ -79,6 +95,55 @@ class Particle {
   }
 }
 
+// ========== Confetti 클래스 ==========
+class Confetti {
+  constructor() {
+    this.x = Math.random() * canvas.width;
+    this.y = -20;
+    this.vx = (Math.random() - 0.5) * 2;
+    this.vy = 2 + Math.random() * 3;
+    this.rotation = Math.random() * 360;
+    this.rotationSpeed = (Math.random() - 0.5) * 10;
+    this.width = 10 + Math.random() * 10;
+    this.height = 5 + Math.random() * 10;
+    
+    // 무지개 색상
+    const colors = [
+      '#FF6B6B', // 빨강
+      '#FFA500', // 주황
+      '#FFD93D', // 노랑
+      '#6BCF7F', // 초록
+      '#4D96FF', // 파랑
+      '#9B59B6', // 보라
+      '#FF69B4'  // 핑크
+    ];
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    
+    this.life = 1.0;
+    this.decay = 0.008 + Math.random() * 0.008;
+  }
+  
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.rotation += this.rotationSpeed;
+    this.vy += 0.1; // 중력
+    this.life -= this.decay;
+    
+    return this.life > 0 && this.y < canvas.height + 50;
+  }
+  
+  draw(ctx) {
+    ctx.save();
+    ctx.globalAlpha = this.life;
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation * Math.PI / 180);
+    ctx.fillStyle = this.color;
+    ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    ctx.restore();
+  }
+}
+
 // ========== DOM 요소 ==========
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -86,8 +151,11 @@ const scoreDisplay = document.getElementById('score');
 const timerDisplay = document.getElementById('timer');
 const sumDisplay = document.getElementById('sumDisplay');
 const muteBtn = document.getElementById('muteBtn');
+const restartBtnHeader = document.getElementById('restartBtnHeader');
 const gameOverModal = document.getElementById('gameOverModal');
 const finalScoreDisplay = document.getElementById('finalScore');
+const highScoreDisplay = document.getElementById('highScore');
+const newRecordLabel = document.getElementById('newRecordLabel');
 const restartBtn = document.getElementById('restartBtn');
 
 // ========== 오디오 매니저 ==========
@@ -113,6 +181,9 @@ function startGame() {
   score = 0;
   timeLeft = TIME_LIMIT;
   gameRunning = true;
+  
+  // 최고 점수 로드
+  highScore = loadHighScore();
   
   updateScore();
   updateTimer();
@@ -161,7 +232,27 @@ function endGame() {
   }
   currentHint = null;
   
+  // 최고 점수 확인
+  const isNewRecord = score > highScore;
+  
+  if (isNewRecord) {
+    highScore = score;
+    saveHighScore(highScore);
+    
+    // 컨페티 효과 시작
+    startConfetti();
+  }
+  
+  // UI 업데이트
   finalScoreDisplay.textContent = score;
+  highScoreDisplay.textContent = highScore;
+  
+  if (isNewRecord) {
+    newRecordLabel.classList.remove('hidden');
+  } else {
+    newRecordLabel.classList.add('hidden');
+  }
+  
   gameOverModal.classList.remove('hidden');
 }
 
@@ -275,6 +366,23 @@ function updateParticles() {
 // 파티클 렌더링 함수
 function renderParticles(ctx) {
   particles.forEach(p => p.draw(ctx));
+}
+
+// 컨페티 시작
+function startConfetti() {
+  for (let i = 0; i < 60; i++) {
+    confettiParticles.push(new Confetti());
+  }
+}
+
+// 컨페티 업데이트
+function updateConfetti() {
+  confettiParticles = confettiParticles.filter(c => c.update());
+}
+
+// 컨페티 렌더링
+function renderConfetti(ctx) {
+  confettiParticles.forEach(c => c.draw(ctx));
 }
 
 // ========== 힌트 시스템 ==========
@@ -573,12 +681,16 @@ function render() {
   
   // 파티클 렌더링 (맨 위에 그리기)
   renderParticles(ctx);
+  
+  // 컨페티 렌더링 (최상위)
+  renderConfetti(ctx);
 }
 
 // ========== 게임 루프 ==========
 function gameLoop() {
-  if (gameRunning) {
+  if (gameRunning || confettiParticles.length > 0) {
     updateParticles();
+    updateConfetti();
     render();
     requestAnimationFrame(gameLoop);
   }
@@ -592,6 +704,10 @@ muteBtn.addEventListener('click', () => {
 
 // ========== 재시작 버튼 ==========
 restartBtn.addEventListener('click', () => {
+  startGame();
+});
+
+restartBtnHeader.addEventListener('click', () => {
   startGame();
 });
 
