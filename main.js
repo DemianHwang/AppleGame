@@ -453,7 +453,8 @@ function endGame() {
     highScore = score;
     saveHighScore(highScore);
     
-    // 컨페티 효과 시작
+    // 기존 컨페티 제거 후 새로 시작
+    confettiParticles = [];
     startConfetti();
     // 컨페티를 위해 gameLoop 재시작
     gameLoop();
