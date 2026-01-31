@@ -235,6 +235,7 @@ function calculateCanvasSize() {
   const container = document.querySelector('.game-container');
   const header = document.querySelector('.game-header');
   const sumDisplay = document.querySelector('.sum-display');
+  const orientationWarning = document.getElementById('orientationWarning');
   
   // 컨테이너 여백 및 패딩 고려
   const containerPadding = 48; // 24px * 2
@@ -242,9 +243,13 @@ function calculateCanvasSize() {
   const sumDisplayHeight = sumDisplay ? sumDisplay.offsetHeight + 12 : 60; // 12px margin
   const extraSpace = 40; // 추가 여백
   
+  // 세로 모드 안내 배너 높이 고려
+  const orientationWarningHeight = (orientationWarning && !orientationWarning.classList.contains('hidden')) 
+    ? orientationWarning.offsetHeight : 0;
+  
   // 사용 가능한 뷰포트 크기
   const availableWidth = window.innerWidth - containerPadding;
-  const availableHeight = window.innerHeight - containerPadding - headerHeight - sumDisplayHeight - extraSpace;
+  const availableHeight = window.innerHeight - containerPadding - headerHeight - sumDisplayHeight - extraSpace - orientationWarningHeight;
   
   // 보드 비율 유지하면서 최대 크기 계산
   const aspectRatio = BOARD_WIDTH / BOARD_HEIGHT;
@@ -1263,6 +1268,17 @@ showStatsBtn.addEventListener('click', () => {
   }
 });
 
+// 세로 모드 안내 메시지 리셋
+const resetOrientationWarningBtn = document.getElementById('resetOrientationWarningBtn');
+if (resetOrientationWarningBtn) {
+  resetOrientationWarningBtn.addEventListener('click', () => {
+    localStorage.removeItem('orientationWarningDismissed');
+    console.log('✅ 세로 모드 안내 메시지가 리셋되었습니다.');
+    checkOrientation();
+    alert('세로 모드 안내 메시지가 리셋되었습니다!\n모바일 세로 모드에서 다시 표시됩니다.');
+  });
+}
+
 // ========== 윈도우 리사이즈 대응 ==========
 let resizeTimeout;
 window.addEventListener('resize', () => {
@@ -1279,6 +1295,19 @@ function checkOrientation() {
   const orientationWarning = document.getElementById('orientationWarning');
   if (!orientationWarning) return;
   
+  const wasHidden = orientationWarning.classList.contains('hidden');
+  
+  // 사용자가 닫기 버튼을 눌렀는지 확인
+  const dismissed = localStorage.getItem('orientationWarningDismissed');
+  if (dismissed === 'true') {
+    orientationWarning.classList.add('hidden');
+    // 상태가 변경되었으면 캔버스 리사이즈
+    if (!wasHidden) {
+      resizeCanvas();
+    }
+    return;
+  }
+  
   const isPortrait = window.innerHeight > window.innerWidth;
   const isMobile = window.innerWidth < 768;
   
@@ -1288,6 +1317,25 @@ function checkOrientation() {
   } else {
     orientationWarning.classList.add('hidden');
   }
+  
+  // 상태가 변경되었으면 캔버스 리사이즈
+  const isHidden = orientationWarning.classList.contains('hidden');
+  if (wasHidden !== isHidden) {
+    resizeCanvas();
+  }
+}
+
+// 세로 모드 안내 닫기
+const closeOrientationWarningBtn = document.getElementById('closeOrientationWarning');
+if (closeOrientationWarningBtn) {
+  closeOrientationWarningBtn.addEventListener('click', () => {
+    const orientationWarning = document.getElementById('orientationWarning');
+    orientationWarning.classList.add('hidden');
+    // 사용자 선택 저장 (다시 보지 않기)
+    localStorage.setItem('orientationWarningDismissed', 'true');
+    // 배너가 사라지면 캔버스 크기 재계산
+    resizeCanvas();
+  });
 }
 
 // 초기 체크

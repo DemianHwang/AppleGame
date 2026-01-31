@@ -26,6 +26,13 @@ body {
   align-items: center;
 }
 
+/* 모바일에서만 배너가 보이므로 게임 컨테이너 조정 */
+@media (max-width: 768px) {
+  .game-container {
+    margin-top: 0;
+  }
+}
+
 .game-container {
   background: white;
   border-radius: 16px;
@@ -442,13 +449,14 @@ body {
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.85);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 20000; /* 모든 요소 위에 */
-  backdrop-filter: blur(5px);
+  z-index: 9999; /* 모든 요소 위에 */
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.3s ease-out;
 }
 
 .orientation-warning.hidden {
@@ -456,29 +464,70 @@ body {
 }
 
 .orientation-content {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   color: white;
-  padding: 40px;
-  animation: pulse 2s ease-in-out infinite;
+  flex: 1;
+  max-width: 600px;
 }
 
 .rotate-icon {
-  font-size: 80px;
-  margin-bottom: 20px;
+  font-size: 24px;
   animation: rotate-device 2s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
 .orientation-content p {
-  font-size: 20px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.4;
   margin: 0;
   font-weight: 500;
+  flex: 1;
+}
+
+.orientation-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.orientation-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.orientation-close:active {
+  transform: scale(0.95);
 }
 
 @keyframes rotate-device {
   0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-15deg); }
-  75% { transform: rotate(15deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* 데스크톱에서는 안내 메시지 숨김 */
