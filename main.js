@@ -260,11 +260,15 @@ function calculateCanvasSize() {
     // 모바일 가로모드: 사이드바 레이아웃 (합계 표시 제거로 높이 최대화)
     const sidebarWidth = header ? header.offsetWidth : 100;
     
-    // 실제 컨테이너 높이 기준으로 계산 (브라우저 UI 영향 제거)
-    const containerHeight = container ? container.clientHeight : viewportHeight;
+    // game-area의 실제 높이 사용 (가장 정확)
+    const gameArea = document.querySelector('.game-area');
+    const gameAreaHeight = gameArea ? gameArea.clientHeight : viewportHeight;
+    
+    // 여러 높이 중 가장 작은 값 사용 (가장 보수적)
+    const safeHeight = Math.min(viewportHeight, gameAreaHeight, container ? container.clientHeight : viewportHeight);
     
     availableWidth = viewportWidth - sidebarWidth - 8; // 여유 공간 8px
-    availableHeight = Math.min(viewportHeight, containerHeight) - orientationWarningHeight - 24; // 여유 공간 24px (매우 보수적)
+    availableHeight = safeHeight - orientationWarningHeight - 40; // 여유 공간 40px (매우 보수적)
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);

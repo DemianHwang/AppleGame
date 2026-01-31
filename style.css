@@ -449,6 +449,39 @@ body {
   }
 }
 
+/* 모바일 가로모드 시작 화면 - 더 컴팩트하게 */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .start-modal {
+    padding: 16px 20px;
+    max-height: 85vh;
+  }
+  
+  .game-title {
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+  
+  .game-subtitle {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  
+  .game-rules {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .game-rules p {
+    font-size: 12px;
+    margin: 4px 0;
+  }
+  
+  .start-btn {
+    padding: 10px 32px;
+    font-size: 16px;
+  }
+}
+
 .modal-content {
   background: white;
   padding: 40px;
@@ -457,6 +490,8 @@ body {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   min-width: 300px;
   max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 /* 모바일 모달 */
