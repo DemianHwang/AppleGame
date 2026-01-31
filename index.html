@@ -7,13 +7,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>사과 게임 (Fruit Box)</title>
-  <script type="module" crossorigin src="/AppleGame/assets/index-DFRrtVDB.js"></script>
-  <link rel="stylesheet" crossorigin href="/AppleGame/assets/index-1ombH7UE.css">
+  <script type="module" crossorigin src="/AppleGame/assets/index-DBoWlSLM.js"></script>
+  <link rel="stylesheet" crossorigin href="/AppleGame/assets/index-DMY7xIQ6.css">
 </head>
 <body>
   <div id="app">
     <div class="game-container">
-      <!-- 상단 UI -->
+      <!-- 상단 UI / 사이드바 (가로모드 시) -->
       <div class="game-header">
         <div class="score-display">
           <span class="label">점수:</span>
@@ -23,14 +23,20 @@
           <span class="label">시간:</span>
           <span id="timer">120</span>초
         </div>
-        <button id="muteBtn" class="mute-btn" title="음소거 토글">🔊</button>
+        <div class="header-buttons">
+          <button id="fullscreenBtn" class="icon-btn" title="전체화면">⛶</button>
+          <button id="muteBtn" class="icon-btn" title="음소거 토글">🔊</button>
+        </div>
       </div>
 
-      <!-- 게임 보드 Canvas (크기는 JS에서 동적으로 설정) -->
-      <canvas id="gameCanvas"></canvas>
+      <!-- 게임 영역 (가로모드에서 사이드바 옆에 배치) -->
+      <div class="game-area">
+        <!-- 게임 보드 Canvas (크기는 JS에서 동적으로 설정) -->
+        <canvas id="gameCanvas"></canvas>
 
-      <!-- 선택 영역 합계 표시 -->
-      <div id="sumDisplay" class="sum-display"></div>
+        <!-- 선택 영역 합계 표시 -->
+        <div id="sumDisplay" class="sum-display"></div>
+      </div>
       
       <!-- 다시 시작 버튼 (왼쪽 하단 고정) -->
       <button id="restartBtnHeader" class="restart-btn-floating" title="다시 시작">
