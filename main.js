@@ -252,12 +252,11 @@ function calculateCanvasSize() {
   let availableWidth, availableHeight;
   
   if (isMobileLandscape) {
-    // 모바일 가로모드: 사이드바 레이아웃
-    const sidebarWidth = header ? header.offsetWidth + 8 : 120; // 8px gap
-    const sumDisplayHeight = sumDisplay ? sumDisplay.offsetHeight + 8 : 48;
+    // 모바일 가로모드: 사이드바 레이아웃 (합계 표시 제거로 높이 최대화)
+    const sidebarWidth = header ? header.offsetWidth + 4 : 110; // 4px gap
     
     availableWidth = window.innerWidth - containerPadding - sidebarWidth;
-    availableHeight = window.innerHeight - containerPadding - sumDisplayHeight - orientationWarningHeight - 16;
+    availableHeight = window.innerHeight - containerPadding - orientationWarningHeight - 8;
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);
@@ -508,13 +507,10 @@ function updateSumDisplay(sum, count) {
 function getCellFromMouse(e) {
   const rect = canvas.getBoundingClientRect();
   
-  // CSS 크기 대비 내부 해상도 스케일 계산
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  
-  // 마우스 좌표를 캔버스 내부 좌표로 변환
-  const mouseX = (e.clientX - rect.left) * scaleX;
-  const mouseY = (e.clientY - rect.top) * scaleY;
+  // DPR이 적용된 캔버스에서는 CSS 픽셀 기준으로 계산
+  // ctx.scale(dpr, dpr)로 렌더링을 스케일링했으므로, 좌표는 논리적 픽셀로 처리
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
   
   const x = Math.floor(mouseX / CELL_SIZE);
   const y = Math.floor(mouseY / CELL_SIZE);
@@ -528,13 +524,9 @@ function getCellFromMouse(e) {
 function getCellFromTouch(touch) {
   const rect = canvas.getBoundingClientRect();
   
-  // CSS 크기 대비 내부 해상도 스케일 계산
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  
-  // 터치 좌표를 캔버스 내부 좌표로 변환
-  const touchX = (touch.clientX - rect.left) * scaleX;
-  const touchY = (touch.clientY - rect.top) * scaleY;
+  // DPR이 적용된 캔버스에서는 CSS 픽셀 기준으로 계산
+  const touchX = touch.clientX - rect.left;
+  const touchY = touch.clientY - rect.top;
   
   const x = Math.floor(touchX / CELL_SIZE);
   const y = Math.floor(touchY / CELL_SIZE);
@@ -1100,13 +1092,36 @@ muteBtn.addEventListener('click', () => {
   muteBtn.textContent = muted ? '🔇' : '🔊';
 });
 
+// 전체화면 지원 여부 확인
+const supportsFullscreen = !!(
+  document.fullscreenEnabled || 
+  document.webkitFullscreenEnabled || 
+  document.msFullscreenEnabled
+);
+
+// iOS 감지
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+// iOS에서 전체화면 API 미지원 시 안내
+if (isIOS && !supportsFullscreen) {
+  fullscreenBtn.title = 'iOS: Safari에서 공유 버튼 → 홈 화면에 추가';
+}
+
 // 전체화면 토글
 fullscreenBtn.addEventListener('click', () => {
-  if (!document.fullscreenElement) {
+  // iOS에서 지원하지 않으면 경고 표시
+  if (isIOS && !supportsFullscreen) {
+    alert('iOS에서는 Safari 하단의 공유 버튼(↑)을 눌러\n"홈 화면에 추가"를 선택하면 전체화면 모드로 실행됩니다.');
+    return;
+  }
+  
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     // 전체화면 진입
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
-      elem.requestFullscreen();
+      elem.requestFullscreen().catch(err => {
+        console.log('전체화면 실패:', err);
+      });
     } else if (elem.webkitRequestFullscreen) { // Safari
       elem.webkitRequestFullscreen();
     } else if (elem.msRequestFullscreen) { // IE11
