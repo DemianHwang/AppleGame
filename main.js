@@ -260,8 +260,11 @@ function calculateCanvasSize() {
     // 모바일 가로모드: 사이드바 레이아웃 (합계 표시 제거로 높이 최대화)
     const sidebarWidth = header ? header.offsetWidth : 100;
     
+    // 실제 컨테이너 높이 기준으로 계산 (브라우저 UI 영향 제거)
+    const containerHeight = container ? container.clientHeight : viewportHeight;
+    
     availableWidth = viewportWidth - sidebarWidth - 8; // 여유 공간 8px
-    availableHeight = viewportHeight - orientationWarningHeight - 16; // 여유 공간 16px (더 보수적으로)
+    availableHeight = Math.min(viewportHeight, containerHeight) - orientationWarningHeight - 24; // 여유 공간 24px (매우 보수적)
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);

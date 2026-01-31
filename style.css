@@ -848,6 +848,29 @@ body {
   }
 }
 
+/* ========== 버전 표시 ========== */
+.version-display {
+  position: fixed;
+  bottom: 4px;
+  right: 4px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  z-index: 9999;
+  pointer-events: none;
+  font-family: monospace;
+}
+
+/* 모바일 가로모드에서 디버그 버튼과 겹치지 않도록 */
+@media (max-width: 1024px) and (orientation: landscape) {
+  .version-display {
+    right: auto;
+    left: 4px;
+  }
+}
+
 /* ========== 점수/타이머 반응형 ========== */
 @media (max-width: 1024px) {
   .score-display,
