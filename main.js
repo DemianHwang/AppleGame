@@ -191,8 +191,8 @@ class Confetti {
     this.color = colors[Math.floor(Math.random() * colors.length)];
     
     this.life = 1.0;
-    this.decay = 0.003 + Math.random() * 0.003; // 지속 시간 2배 증가 (0.006~0.012 → 0.003~0.006)
-    this.gravity = 0.12; // 중력 약간 감소 (0.15 → 0.12)
+    this.decay = 0.0015 + Math.random() * 0.0015; // 지속시간 5초 이상 (decay: 0.003~0.006 → 0.0015~0.003)
+    this.gravity = 0.1; // 중력 더 감소 (0.12 → 0.1)
   }
   
   update() {
@@ -242,6 +242,11 @@ function calculateCanvasSize() {
   const isLandscape = window.innerWidth > window.innerHeight;
   const isMobileLandscape = isMobile && isLandscape;
   
+  // 실제 가용 높이 계산 (모바일 브라우저 툴바 고려)
+  // visualViewport API 사용 (모바일 브라우저 툴바를 제외한 실제 보이는 영역)
+  const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+  
   // 컨테이너 여백 및 패딩 고려
   const containerPadding = isMobile ? 16 : 48; // 모바일 가로모드는 더 작게
   
@@ -255,16 +260,16 @@ function calculateCanvasSize() {
     // 모바일 가로모드: 사이드바 레이아웃 (합계 표시 제거로 높이 최대화)
     const sidebarWidth = header ? header.offsetWidth : 100;
     
-    availableWidth = window.innerWidth - sidebarWidth - 8; // 여유 공간 8px
-    availableHeight = window.innerHeight - orientationWarningHeight - 8; // 여유 공간 8px
+    availableWidth = viewportWidth - sidebarWidth - 8; // 여유 공간 8px
+    availableHeight = viewportHeight - orientationWarningHeight - 16; // 여유 공간 16px (더 보수적으로)
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);
     const sumDisplayHeight = sumDisplay ? sumDisplay.offsetHeight + (isMobile ? 8 : 12) : (isMobile ? 48 : 60);
     const extraSpace = isMobile ? 20 : 40;
     
-    availableWidth = window.innerWidth - containerPadding;
-    availableHeight = window.innerHeight - containerPadding - headerHeight - sumDisplayHeight - extraSpace - orientationWarningHeight;
+    availableWidth = viewportWidth - containerPadding;
+    availableHeight = viewportHeight - containerPadding - headerHeight - sumDisplayHeight - extraSpace - orientationWarningHeight;
   }
   
   // 보드 비율 유지하면서 최대 크기 계산
@@ -1438,6 +1443,13 @@ if (closeOrientationWarningBtn) {
 
 // 초기 체크
 checkOrientation();
+
+// ========== visualViewport 리스너 추가 (모바일 브라우저 툴바 대응) ==========
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    resizeCanvas();
+  });
+}
 
 // ========== 초기 렌더링 (게임은 시작 버튼 클릭 시 시작) ==========
 // 시작 화면에서도 보드를 미리 보여주기 위한 초기 렌더링
