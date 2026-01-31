@@ -237,22 +237,36 @@ function calculateCanvasSize() {
   const sumDisplay = document.querySelector('.sum-display');
   const orientationWarning = document.getElementById('orientationWarning');
   
-  // 모바일 여부 확인
+  // 모바일 여부 및 방향 확인
   const isMobile = window.innerWidth <= 1024;
+  const isLandscape = window.innerWidth > window.innerHeight;
+  const isMobileLandscape = isMobile && isLandscape;
   
-  // 컨테이너 여백 및 패딩 고려 (모바일: 12px*2, 데스크톱: 24px*2)
-  const containerPadding = isMobile ? 24 : 48;
-  const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);
-  const sumDisplayHeight = sumDisplay ? sumDisplay.offsetHeight + (isMobile ? 8 : 12) : (isMobile ? 48 : 60);
-  const extraSpace = isMobile ? 20 : 40; // 추가 여백
+  // 컨테이너 여백 및 패딩 고려
+  const containerPadding = isMobile ? 16 : 48; // 모바일 가로모드는 더 작게
   
   // 세로 모드 안내 배너 높이 고려
   const orientationWarningHeight = (orientationWarning && !orientationWarning.classList.contains('hidden')) 
     ? orientationWarning.offsetHeight : 0;
   
-  // 사용 가능한 뷰포트 크기
-  const availableWidth = window.innerWidth - containerPadding;
-  const availableHeight = window.innerHeight - containerPadding - headerHeight - sumDisplayHeight - extraSpace - orientationWarningHeight;
+  let availableWidth, availableHeight;
+  
+  if (isMobileLandscape) {
+    // 모바일 가로모드: 사이드바 레이아웃
+    const sidebarWidth = header ? header.offsetWidth + 8 : 120; // 8px gap
+    const sumDisplayHeight = sumDisplay ? sumDisplay.offsetHeight + 8 : 48;
+    
+    availableWidth = window.innerWidth - containerPadding - sidebarWidth;
+    availableHeight = window.innerHeight - containerPadding - sumDisplayHeight - orientationWarningHeight - 16;
+  } else {
+    // 세로모드 또는 데스크톱: 기존 레이아웃
+    const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);
+    const sumDisplayHeight = sumDisplay ? sumDisplay.offsetHeight + (isMobile ? 8 : 12) : (isMobile ? 48 : 60);
+    const extraSpace = isMobile ? 20 : 40;
+    
+    availableWidth = window.innerWidth - containerPadding;
+    availableHeight = window.innerHeight - containerPadding - headerHeight - sumDisplayHeight - extraSpace - orientationWarningHeight;
+  }
   
   // 보드 비율 유지하면서 최대 크기 계산
   const aspectRatio = BOARD_WIDTH / BOARD_HEIGHT;
@@ -326,6 +340,7 @@ const scoreDisplay = document.getElementById('score');
 const timerDisplay = document.getElementById('timer');
 const sumDisplay = document.getElementById('sumDisplay');
 const muteBtn = document.getElementById('muteBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
 const restartBtnHeader = document.getElementById('restartBtnHeader');
 const gameOverModal = document.getElementById('gameOverModal');
 const finalScoreDisplay = document.getElementById('finalScore');
@@ -1076,6 +1091,46 @@ muteBtn.addEventListener('click', () => {
   const muted = audioManager.toggleMute();
   muteBtn.textContent = muted ? '🔇' : '🔊';
 });
+
+// 전체화면 토글
+fullscreenBtn.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    // 전체화면 진입
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) { // Safari
+      elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) { // IE11
+      elem.msRequestFullscreen();
+    }
+  } else {
+    // 전체화면 나가기
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) { // Safari
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) { // IE11
+      document.msExitFullscreen();
+    }
+  }
+});
+
+// 전체화면 상태 변경 감지
+document.addEventListener('fullscreenchange', updateFullscreenButton);
+document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+document.addEventListener('msfullscreenchange', updateFullscreenButton);
+
+function updateFullscreenButton() {
+  const isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+  fullscreenBtn.textContent = isFullscreen ? '⛶' : '⛶'; // 같은 아이콘 사용
+  fullscreenBtn.title = isFullscreen ? '전체화면 나가기' : '전체화면';
+  
+  // 전체화면 변경 시 캔버스 크기 재조정
+  setTimeout(() => {
+    resizeCanvas();
+  }, 100);
+}
 
 // ========== 재시작 버튼 ==========
 restartBtn.addEventListener('click', () => {
