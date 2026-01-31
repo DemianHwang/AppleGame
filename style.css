@@ -210,18 +210,18 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* 캔버스를 세로 중앙에 */
+    justify-content: flex-start; /* 캔버스를 상단에 붙임 */
     min-width: 0;
     height: 100vh;
     height: 100dvh; /* 동적 뷰포트 높이 */
     overflow: hidden;
-    padding: 4px; /* 캔버스 주변에 최소한의 여백 */
+    padding: 0; /* 패딩 제거 */
     box-sizing: border-box;
   }
   
   #gameCanvas {
     flex-shrink: 0;
-    max-height: calc(100dvh - 8px); /* 상하 패딩 고려 */
+    max-height: 100dvh; /* 최대 높이 제한 */
   }
   
   /* 가로모드에서는 합계 표시 숨기기 (공간 절약) */

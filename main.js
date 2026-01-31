@@ -262,11 +262,9 @@ function calculateCanvasSize() {
     const sidebarWidth = header ? header.offsetWidth : 100;
     
     // 가로모드에서는 뷰포트 높이를 직접 사용 (padding: 0 이므로)
-    // 캔버스 영역의 padding 8px (4px * 2) 고려
-    const canvasPadding = 8;
-    
-    availableWidth = viewportWidth - sidebarWidth - canvasPadding;
-    availableHeight = viewportHeight - orientationWarningHeight - canvasPadding;
+    // 여유 공간 없이 최대한 활용
+    availableWidth = viewportWidth - sidebarWidth;
+    availableHeight = viewportHeight - orientationWarningHeight;
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);
