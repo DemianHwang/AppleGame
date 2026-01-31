@@ -353,12 +353,13 @@ canvas.addEventListener('mouseup', (e) => {
     updateScore();
     audioManager.playSuccess();
     
-    // 힌트 영역을 맞췄는지 확인
+    // 힌트 영역을 맞췄는지 확인 후 제거
     if (isHintMatch(bounds)) {
-      // 힌트 제거 및 타이머 재시작
       currentHint = null;
-      recordActivity();
     }
+    
+    // 성공했으므로 항상 타이머 리셋
+    recordActivity();
     
     // 모든 블록 제거 체크
     const allEmpty = board.every(row => row.every(cell => cell.isEmpty));
