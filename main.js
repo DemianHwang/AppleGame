@@ -248,7 +248,7 @@ function calculateCanvasSize() {
   const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
   
   // 컨테이너 여백 및 패딩 고려
-  const containerPadding = isMobile ? 16 : 48; // 모바일 가로모드는 더 작게
+  const containerPadding = isMobile ? 16 : 48;
   
   // 세로 모드 안내 배너 높이 고려
   const orientationWarningHeight = (orientationWarning && !orientationWarning.classList.contains('hidden')) 
@@ -257,16 +257,16 @@ function calculateCanvasSize() {
   let availableWidth, availableHeight;
   
   if (isMobileLandscape) {
-    // 모바일 가로모드: 사이드바 레이아웃 (합계 표시 제거로 높이 최대화)
+    // 모바일 가로모드: 사이드바 레이아웃
+    // 사이드바 너비: header의 실제 너비 또는 기본값 100px
     const sidebarWidth = header ? header.offsetWidth : 100;
     
-    // 캔버스를 배치할 실제 공간 계산
-    // game-container의 실제 크기 사용 (가장 신뢰할 수 있음)
-    const containerRect = container ? container.getBoundingClientRect() : null;
-    const containerActualHeight = containerRect ? containerRect.height : viewportHeight;
+    // 가로모드에서는 뷰포트 높이를 직접 사용 (padding: 0 이므로)
+    // 캔버스 영역의 padding 8px (4px * 2) 고려
+    const canvasPadding = 8;
     
-    availableWidth = viewportWidth - sidebarWidth - 12; // 여유 공간 12px
-    availableHeight = containerActualHeight - orientationWarningHeight - 16; // 컨테이너 기준, 여유 16px
+    availableWidth = viewportWidth - sidebarWidth - canvasPadding;
+    availableHeight = viewportHeight - orientationWarningHeight - canvasPadding;
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);

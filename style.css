@@ -72,6 +72,7 @@ body {
     overflow: hidden;
     height: 100vh;
     height: 100dvh; /* 동적 뷰포트 높이 (브라우저 UI 제외) */
+    padding: 0 !important; /* safe-area 패딩 제거 */
   }
   
   #app {
@@ -79,11 +80,12 @@ body {
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
+    align-items: stretch; /* 수직 중앙 정렬 대신 stretch로 변경 */
   }
   
   .game-container {
     border-radius: 0;
-    padding: 0;
+    padding: 0 !important; /* safe-area 패딩 포함 모든 패딩 제거 */
     max-width: 100vw;
     max-height: 100vh;
     max-height: 100dvh;
@@ -141,6 +143,7 @@ body {
     flex-direction: row !important;
     padding: 0 !important;
     gap: 0 !important;
+    align-items: stretch; /* 사이드바와 게임영역 높이 동일하게 */
   }
   
   .game-header {
@@ -154,7 +157,9 @@ body {
     justify-content: space-between;
     gap: 10px;
     height: 100vh;
+    height: 100dvh; /* 동적 뷰포트 높이 */
     border-radius: 0;
+    flex-shrink: 0; /* 사이드바 크기 고정 */
   }
   
   .game-header-top {
@@ -205,14 +210,18 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* 캔버스를 세로 중앙에 */
     min-width: 0;
     height: 100vh;
+    height: 100dvh; /* 동적 뷰포트 높이 */
     overflow: hidden;
+    padding: 4px; /* 캔버스 주변에 최소한의 여백 */
+    box-sizing: border-box;
   }
   
   #gameCanvas {
     flex-shrink: 0;
+    max-height: calc(100dvh - 8px); /* 상하 패딩 고려 */
   }
   
   /* 가로모드에서는 합계 표시 숨기기 (공간 절약) */
@@ -878,13 +887,22 @@ body {
   border-radius: 0;
 }
 
-/* 아이폰 Safe Area 추가 대응 */
+/* 아이폰 Safe Area 추가 대응 (세로모드 및 데스크톱만) */
 @supports (padding: max(0px)) {
   .game-container {
     padding-left: max(12px, env(safe-area-inset-left));
     padding-right: max(12px, env(safe-area-inset-right));
     padding-top: max(12px, env(safe-area-inset-top));
     padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+/* 모바일 가로모드에서는 safe-area 패딩 무시 */
+@media (max-width: 1024px) and (orientation: landscape) {
+  @supports (padding: max(0px)) {
+    .game-container {
+      padding: 0 !important;
+    }
   }
 }
 
