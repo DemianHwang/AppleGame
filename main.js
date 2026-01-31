@@ -185,6 +185,9 @@ function startGame() {
   // 최고 점수 로드
   highScore = loadHighScore();
   
+  // 컨페티 초기화
+  confettiParticles = [];
+  
   updateScore();
   updateTimer();
   
@@ -241,6 +244,8 @@ function endGame() {
     
     // 컨페티 효과 시작
     startConfetti();
+    // 컨페티를 위해 gameLoop 재시작
+    gameLoop();
   }
   
   // UI 업데이트
@@ -370,9 +375,11 @@ function renderParticles(ctx) {
 
 // 컨페티 시작
 function startConfetti() {
+  console.log('🎉 컨페티 시작! 60개 생성');
   for (let i = 0; i < 60; i++) {
     confettiParticles.push(new Confetti());
   }
+  console.log('컨페티 배열 길이:', confettiParticles.length);
 }
 
 // 컨페티 업데이트
