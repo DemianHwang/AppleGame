@@ -253,10 +253,10 @@ function calculateCanvasSize() {
   
   if (isMobileLandscape) {
     // 모바일 가로모드: 사이드바 레이아웃 (합계 표시 제거로 높이 최대화)
-    const sidebarWidth = header ? header.offsetWidth + 4 : 110; // 4px gap
+    const sidebarWidth = header ? header.offsetWidth : 100;
     
-    availableWidth = window.innerWidth - containerPadding - sidebarWidth;
-    availableHeight = window.innerHeight - containerPadding - orientationWarningHeight - 8;
+    availableWidth = window.innerWidth - sidebarWidth - 8; // 여유 공간 8px
+    availableHeight = window.innerHeight - orientationWarningHeight - 8; // 여유 공간 8px
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);
