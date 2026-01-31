@@ -6,10 +6,16 @@ class AudioManager {
     // Web Audio API를 사용한 간단한 효과음 생성
     this.audioContext = null;
     
-    // BGM - 무료 루프 음악 URL (freesound.org)
-    this.bgm = new Audio('https://freesound.org/data/previews/352/352663_5121236-lq.mp3');
+    // BGM - 로컬 MP3 파일 사용 (public/audio/bgm.mp3)
+    this.bgm = new Audio('/audio/bgm.mp3');
     this.bgm.loop = true;
     this.bgm.volume = 0.3;
+    
+    // 로딩 에러 처리
+    this.bgm.addEventListener('error', (e) => {
+      console.error('BGM 로딩 실패:', e);
+      console.log('파일 경로를 확인하세요: public/audio/bgm.mp3');
+    });
     
     this.initAudioContext();
   }
