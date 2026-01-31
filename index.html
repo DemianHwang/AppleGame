@@ -49,6 +49,9 @@
       </div>
     </div>
 
+    <!-- 컨페티 전용 캔버스 (최상위 레이어) -->
+    <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
     <!-- 디버그 패널 -->
     <div id="debugPanel" class="debug-panel hidden">
       <div class="debug-header">🔧 테스트 모드</div>
@@ -58,7 +61,10 @@
     </div>
     
     <!-- 디버그 토글 버튼 -->
-    <button id="debugToggleBtn" class="debug-toggle-btn" title="테스트 모드">🔧</button>
+    <button id="debugToggleBtn" class="debug-toggle-btn" title="테스트 모드">
+      <span class="debug-icon">🔧</span>
+      <span class="debug-text">TEST</span>
+    </button>
   </div>
 
   <script type="module" src="./main.js"></script>

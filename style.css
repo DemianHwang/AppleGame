@@ -233,27 +233,49 @@ body {
   font-size: 22px;
 }
 
+/* ========== 컨페티 캔버스 ========== */
+.confetti-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 10000; /* 모든 요소 위에 표시 */
+}
+
 /* ========== 디버그 패널 ========== */
 .debug-toggle-btn {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  width: 56px;
-  height: 56px;
+  padding: 12px 20px;
   background: #673ab7;
   color: white;
   border: none;
-  border-radius: 50%;
-  font-size: 24px;
+  border-radius: 28px;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(103, 58, 183, 0.4);
   transition: all 0.3s ease;
   z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.debug-icon {
+  font-size: 20px;
+}
+
+.debug-text {
+  font-size: 14px;
+  letter-spacing: 0.5px;
 }
 
 .debug-toggle-btn:hover {
   background: #5e35b1;
-  transform: scale(1.1);
+  transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(103, 58, 183, 0.6);
 }
 

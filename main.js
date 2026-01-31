@@ -97,15 +97,21 @@ class Particle {
 
 // ========== Confetti 클래스 ==========
 class Confetti {
-  constructor() {
-    this.x = Math.random() * canvas.width;
-    this.y = -20;
-    this.vx = (Math.random() - 0.5) * 2;
-    this.vy = 2 + Math.random() * 3;
+  constructor(centerX, centerY) {
+    // 화면 중앙에서 시작
+    this.x = centerX;
+    this.y = centerY;
+    
+    // 사방으로 폭발하는 속도 (360도 방향)
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 5 + Math.random() * 10; // 폭발 속도
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed - 3; // 약간 위쪽으로 더 튀도록
+    
     this.rotation = Math.random() * 360;
-    this.rotationSpeed = (Math.random() - 0.5) * 10;
-    this.width = 10 + Math.random() * 10;
-    this.height = 5 + Math.random() * 10;
+    this.rotationSpeed = (Math.random() - 0.5) * 15;
+    this.width = 8 + Math.random() * 12;
+    this.height = 6 + Math.random() * 10;
     
     // 무지개 색상
     const colors = [
@@ -120,17 +126,25 @@ class Confetti {
     this.color = colors[Math.floor(Math.random() * colors.length)];
     
     this.life = 1.0;
-    this.decay = 0.008 + Math.random() * 0.008;
+    this.decay = 0.006 + Math.random() * 0.006; // 조금 더 오래 지속
+    this.gravity = 0.15; // 중력
   }
   
   update() {
     this.x += this.vx;
     this.y += this.vy;
     this.rotation += this.rotationSpeed;
-    this.vy += 0.1; // 중력
+    
+    // 중력 적용
+    this.vy += this.gravity;
+    
+    // 공기 저항
+    this.vx *= 0.99;
+    
     this.life -= this.decay;
     
-    return this.life > 0 && this.y < canvas.height + 50;
+    // 화면 밖으로 나가거나 수명이 다하면 제거
+    return this.life > 0 && this.y < window.innerHeight + 100;
   }
   
   draw(ctx) {
@@ -147,6 +161,13 @@ class Confetti {
 // ========== DOM 요소 ==========
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const confettiCanvas = document.getElementById('confettiCanvas');
+const confettiCtx = confettiCanvas.getContext('2d');
+
+// 컨페티 캔버스 크기를 전체 화면으로 설정
+confettiCanvas.width = window.innerWidth;
+confettiCanvas.height = window.innerHeight;
+
 const scoreDisplay = document.getElementById('score');
 const timerDisplay = document.getElementById('timer');
 const sumDisplay = document.getElementById('sumDisplay');
@@ -382,9 +403,13 @@ function renderParticles(ctx) {
 
 // 컨페티 시작
 function startConfetti() {
-  console.log('🎉 컨페티 시작! 60개 생성');
-  for (let i = 0; i < 60; i++) {
-    confettiParticles.push(new Confetti());
+  console.log('🎉 컨페티 시작! 80개 생성');
+  // 화면 중앙 좌표 계산
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+  
+  for (let i = 0; i < 80; i++) {
+    confettiParticles.push(new Confetti(centerX, centerY));
   }
   console.log('컨페티 배열 길이:', confettiParticles.length);
 }
@@ -394,9 +419,13 @@ function updateConfetti() {
   confettiParticles = confettiParticles.filter(c => c.update());
 }
 
-// 컨페티 렌더링
-function renderConfetti(ctx) {
-  confettiParticles.forEach(c => c.draw(ctx));
+// 컨페티 렌더링 (별도 캔버스 사용)
+function renderConfetti() {
+  // 캔버스 클리어
+  confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  
+  // 컨페티 그리기
+  confettiParticles.forEach(c => c.draw(confettiCtx));
 }
 
 // ========== 힌트 시스템 ==========
@@ -695,9 +724,6 @@ function render() {
   
   // 파티클 렌더링 (맨 위에 그리기)
   renderParticles(ctx);
-  
-  // 컨페티 렌더링 (최상위)
-  renderConfetti(ctx);
 }
 
 // ========== 게임 루프 ==========
@@ -706,6 +732,7 @@ function gameLoop() {
     updateParticles();
     updateConfetti();
     render();
+    renderConfetti(); // 별도 캔버스에 렌더링
     requestAnimationFrame(gameLoop);
   }
 }
@@ -763,6 +790,12 @@ testConfettiBtn.addEventListener('click', () => {
   
   console.log('현재 컨페티 개수:', confettiParticles.length);
   alert('컨페티 테스트! 콘솔을 확인하세요.');
+});
+
+// ========== 윈도우 리사이즈 대응 ==========
+window.addEventListener('resize', () => {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
 });
 
 // ========== 게임 시작 ==========
