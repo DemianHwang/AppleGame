@@ -24,6 +24,61 @@ let currentCell = null;
 let currentHint = null;  // { startX, startY, endX, endY }
 let hintTimeout = null;
 
+// 파티클 상태
+let particles = [];
+const MAX_PARTICLES = 200;
+
+// ========== Particle 클래스 ==========
+class Particle {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    
+    // 속도 (랜덤 방향으로 폭발)
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 4;
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed - 2;  // 위로 더 튀도록
+    
+    // 크기와 수명
+    this.size = 3 + Math.random() * 5;
+    this.life = 1.0;
+    this.decay = 0.015 + Math.random() * 0.015;
+    
+    // 중력
+    this.gravity = 0.15;
+  }
+  
+  update() {
+    // 위치 업데이트
+    this.x += this.vx;
+    this.y += this.vy;
+    
+    // 중력 적용
+    this.vy += this.gravity;
+    
+    // 감속
+    this.vx *= 0.98;
+    
+    // 수명 감소
+    this.life -= this.decay;
+    
+    return this.life > 0;  // 살아있으면 true
+  }
+  
+  draw(ctx) {
+    ctx.save();
+    ctx.globalAlpha = this.life;
+    ctx.fillStyle = this.color;
+    ctx.font = `${this.size * 3}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⭐', this.x, this.y);
+    ctx.restore();
+  }
+}
+
 // ========== DOM 요소 ==========
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -89,7 +144,8 @@ function startGame() {
     findAndShowHint();
   }, 5000);
   
-  render();
+  // 게임 루프 시작
+  gameLoop();
 }
 
 // ========== 게임 종료 ==========
@@ -192,6 +248,33 @@ function removeBlocks(bounds) {
       board[y][x].isEmpty = true;
     }
   }
+}
+
+// ========== 파티클 시스템 ==========
+// 파티클 생성 함수
+function createParticles(x, y, count, blockValue) {
+  // 파티클 개수 제한
+  if (particles.length > MAX_PARTICLES) {
+    return;
+  }
+  
+  // 블록 색상 계산 (기존 렌더링과 동일)
+  const hue = (blockValue - 1) * 40;
+  const color = `hsl(${hue}, 70%, 60%)`;
+  
+  for (let i = 0; i < count; i++) {
+    particles.push(new Particle(x, y, color));
+  }
+}
+
+// 파티클 업데이트 함수
+function updateParticles() {
+  particles = particles.filter(p => p.update());
+}
+
+// 파티클 렌더링 함수
+function renderParticles(ctx) {
+  particles.forEach(p => p.draw(ctx));
 }
 
 // ========== 힌트 시스템 ==========
@@ -347,6 +430,18 @@ canvas.addEventListener('mouseup', (e) => {
   const { sum, count } = calculateSum(bounds);
   
   if (sum === TARGET_SUM && count > 0) {
+    // 파티클 생성 (제거 전에 블록 정보 저장)
+    for (let y = bounds.startY; y <= bounds.endY; y++) {
+      for (let x = bounds.startX; x <= bounds.endX; x++) {
+        if (!board[y][x].isEmpty) {
+          const px = x * CELL_SIZE + CELL_SIZE / 2;
+          const py = y * CELL_SIZE + CELL_SIZE / 2;
+          const particleCount = 3 + Math.floor(Math.random() * 3);
+          createParticles(px, py, particleCount, board[y][x].value);
+        }
+      }
+    }
+    
     // 성공: 블록 제거 및 점수 추가
     removeBlocks(bounds);
     score += count;
@@ -474,6 +569,18 @@ function render() {
       ctx.lineWidth = 3;
       ctx.strokeRect(px, py, width, height);
     }
+  }
+  
+  // 파티클 렌더링 (맨 위에 그리기)
+  renderParticles(ctx);
+}
+
+// ========== 게임 루프 ==========
+function gameLoop() {
+  if (gameRunning) {
+    updateParticles();
+    render();
+    requestAnimationFrame(gameLoop);
   }
 }
 
