@@ -14,6 +14,8 @@ let score = 0;
 let timeLeft = TIME_LIMIT;
 let gameRunning = false;
 let timerInterval = null;
+let combo = 0;
+let isAutoRemoving = false;
 
 // 드래그 선택 상태
 let isDragging = false;
@@ -33,6 +35,53 @@ let confettiParticles = [];
 
 // 최고 점수
 let highScore = 0;
+
+// ========== 프로파일링 ==========
+let profilingEnabled = false;
+const performanceStats = {
+  render: [],
+  findHints: [],
+  calculateSum: [],
+  gameLoop: []
+};
+
+function profileStart(label) {
+  if (!profilingEnabled) return null;
+  return { label, start: performance.now() };
+}
+
+function profileEnd(timer) {
+  if (!timer || !profilingEnabled) return;
+  const duration = performance.now() - timer.start;
+  
+  if (!performanceStats[timer.label]) {
+    performanceStats[timer.label] = [];
+  }
+  
+  performanceStats[timer.label].push(duration);
+  
+  // 최근 60개만 유지
+  if (performanceStats[timer.label].length > 60) {
+    performanceStats[timer.label].shift();
+  }
+  
+  // 10ms 이상이면 경고
+  if (duration > 10) {
+    console.warn(`⚠️ ${timer.label} took ${duration.toFixed(2)}ms`);
+  }
+}
+
+function getProfilingStats() {
+  const stats = {};
+  for (const [key, values] of Object.entries(performanceStats)) {
+    if (values.length === 0) continue;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+    stats[key] = { avg: avg.toFixed(2), max: max.toFixed(2), min: min.toFixed(2), count: values.length };
+  }
+  return stats;
+}
 
 // ========== LocalStorage 관리 ==========
 function loadHighScore() {
@@ -58,7 +107,7 @@ class Particle {
     this.vy = Math.sin(angle) * speed - 2;  // 위로 더 튀도록
     
     // 크기와 수명
-    this.size = 3 + Math.random() * 5;
+    this.size = 6 + Math.random() * 6; // 6~12로 증가
     this.life = 1.0;
     this.decay = 0.015 + Math.random() * 0.015;
     
@@ -84,14 +133,24 @@ class Particle {
   }
   
   draw(ctx) {
-    ctx.save();
+    // 별 모양을 path로 그리기 (이모지보다 훨씬 빠름)
+    const oldAlpha = ctx.globalAlpha;
     ctx.globalAlpha = this.life;
     ctx.fillStyle = this.color;
-    ctx.font = `${this.size * 3}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('⭐', this.x, this.y);
-    ctx.restore();
+    
+    // 5각 별 그리기
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+      const x = this.x + Math.cos(angle) * this.size;
+      const y = this.y + Math.sin(angle) * this.size;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.globalAlpha = oldAlpha;
   }
 }
 
@@ -102,32 +161,33 @@ class Confetti {
     this.x = centerX;
     this.y = centerY;
     
-    // 사방으로 폭발하는 속도 (360도 방향)
+    // 사방으로 폭발하는 속도 (360도 방향) - 훨씬 더 강력하게!
     const angle = Math.random() * Math.PI * 2;
-    const speed = 5 + Math.random() * 10; // 폭발 속도
+    const speed = 10 + Math.random() * 18; // 폭발 속도 증가 (5~15 → 10~28)
     this.vx = Math.cos(angle) * speed;
-    this.vy = Math.sin(angle) * speed - 3; // 약간 위쪽으로 더 튀도록
+    this.vy = Math.sin(angle) * speed - 8; // 위쪽으로 더 강하게 튀도록 (-3 → -8)
     
     this.rotation = Math.random() * 360;
-    this.rotationSpeed = (Math.random() - 0.5) * 15;
-    this.width = 8 + Math.random() * 12;
-    this.height = 6 + Math.random() * 10;
+    this.rotationSpeed = (Math.random() - 0.5) * 30; // 회전 속도 2배 증가 (15 → 30)
+    this.width = 12 + Math.random() * 18; // 크기 증가 (8~20 → 12~30)
+    this.height = 10 + Math.random() * 16; // 크기 증가 (6~16 → 10~26)
     
-    // 무지개 색상
+    // 무지개 색상 - 더 선명하게
     const colors = [
-      '#FF6B6B', // 빨강
-      '#FFA500', // 주황
-      '#FFD93D', // 노랑
-      '#6BCF7F', // 초록
-      '#4D96FF', // 파랑
-      '#9B59B6', // 보라
-      '#FF69B4'  // 핑크
+      '#FF0000', // 빨강
+      '#FF6B00', // 주황
+      '#FFD700', // 금색
+      '#00FF00', // 초록
+      '#0080FF', // 파랑
+      '#8000FF', // 보라
+      '#FF00FF', // 마젠타
+      '#FF1493'  // 핫핑크
     ];
     this.color = colors[Math.floor(Math.random() * colors.length)];
     
     this.life = 1.0;
-    this.decay = 0.006 + Math.random() * 0.006; // 조금 더 오래 지속
-    this.gravity = 0.15; // 중력
+    this.decay = 0.003 + Math.random() * 0.003; // 지속 시간 2배 증가 (0.006~0.012 → 0.003~0.006)
+    this.gravity = 0.12; // 중력 약간 감소 (0.15 → 0.12)
   }
   
   update() {
@@ -152,6 +212,13 @@ class Confetti {
     ctx.globalAlpha = this.life;
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rotation * Math.PI / 180);
+    
+    // 그림자 효과 추가 (더 화려하게)
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    
     ctx.fillStyle = this.color;
     ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
     ctx.restore();
@@ -185,6 +252,9 @@ const debugPanel = document.getElementById('debugPanel');
 const resetHighScoreBtn = document.getElementById('resetHighScoreBtn');
 const forceGameOverBtn = document.getElementById('forceGameOverBtn');
 const testConfettiBtn = document.getElementById('testConfettiBtn');
+const autoRemoveBtn = document.getElementById('autoRemoveBtn');
+const toggleProfilingBtn = document.getElementById('toggleProfilingBtn');
+const showStatsBtn = document.getElementById('showStatsBtn');
 
 // ========== 오디오 매니저 ==========
 const audioManager = new AudioManager();
@@ -209,6 +279,7 @@ function startGame() {
   score = 0;
   timeLeft = TIME_LIMIT;
   gameRunning = true;
+  combo = 0;
   
   // 최고 점수 로드
   highScore = loadHighScore();
@@ -220,6 +291,7 @@ function startGame() {
   updateTimer();
   
   gameOverModal.classList.add('hidden');
+  gameOverModal.classList.remove('new-record'); // 클래스 초기화
   
   // BGM 재생
   audioManager.playBGM();
@@ -282,8 +354,10 @@ function endGame() {
   
   if (isNewRecord) {
     newRecordLabel.classList.remove('hidden');
+    gameOverModal.classList.add('new-record'); // 신기록 시 밝은 배경
   } else {
     newRecordLabel.classList.add('hidden');
+    gameOverModal.classList.remove('new-record'); // 일반 배경
   }
   
   gameOverModal.classList.remove('hidden');
@@ -398,17 +472,20 @@ function updateParticles() {
 
 // 파티클 렌더링 함수
 function renderParticles(ctx) {
+  const timer = profileStart('renderParticles');
   particles.forEach(p => p.draw(ctx));
+  profileEnd(timer);
 }
 
 // 컨페티 시작
 function startConfetti() {
-  console.log('🎉 컨페티 시작! 80개 생성');
+  console.log('🎉 컨페티 시작! 200개 생성');
   // 화면 중앙 좌표 계산
   const centerX = window.innerWidth / 2;
   const centerY = window.innerHeight / 2;
   
-  for (let i = 0; i < 80; i++) {
+  // 컨페티 개수를 대폭 증가 (80 → 200)
+  for (let i = 0; i < 200; i++) {
     confettiParticles.push(new Confetti(centerX, centerY));
   }
   console.log('컨페티 배열 길이:', confettiParticles.length);
@@ -431,6 +508,7 @@ function renderConfetti() {
 // ========== 힌트 시스템 ==========
 // 인접한 2개 블록 찾기 (최우선)
 function findAdjacentPairs() {
+  const timer = profileStart('findAdjacentPairs');
   const pairs = [];
   
   for (let y = 0; y < BOARD_HEIGHT; y++) {
@@ -464,32 +542,40 @@ function findAdjacentPairs() {
     }
   }
   
+  profileEnd(timer);
   return pairs;
 }
 
-// 모든 가능한 조합 찾기 (크기순)
+// 모든 가능한 조합 찾기 (크기순) - 최적화: 작은 것부터 찾아서 조기 종료
 function findAllCombinations() {
-  const combinations = [];
+  const timer = profileStart('findAllCombinations');
+  // 크기가 작은 순서대로 탐색 (2x2, 2x3, 3x2, 3x3, ...)
+  const maxSize = 12; // 최대 영역 크기 제한 (너무 큰 영역은 힌트로 부적절)
   
-  // 모든 직사각형 영역 탐색
-  for (let sy = 0; sy < BOARD_HEIGHT; sy++) {
-    for (let sx = 0; sx < BOARD_WIDTH; sx++) {
-      for (let ey = sy; ey < BOARD_HEIGHT; ey++) {
-        for (let ex = sx; ex < BOARD_WIDTH; ex++) {
-          const bounds = { startX: sx, startY: sy, endX: ex, endY: ey };
+  for (let size = 2; size <= maxSize; size++) {
+    // size 크기의 직사각형들을 모두 시도
+    for (let height = 1; height <= size && height <= BOARD_HEIGHT; height++) {
+      const width = Math.ceil(size / height);
+      if (width > BOARD_WIDTH) continue;
+      
+      // 해당 크기의 모든 위치 시도
+      for (let sy = 0; sy <= BOARD_HEIGHT - height; sy++) {
+        for (let sx = 0; sx <= BOARD_WIDTH - width; sx++) {
+          const bounds = { startX: sx, startY: sy, endX: sx + width - 1, endY: sy + height - 1 };
           const { sum, count } = calculateSum(bounds);
           
           if (sum === TARGET_SUM && count >= 2) {
-            const size = (ex - sx + 1) * (ey - sy + 1);
-            combinations.push({ ...bounds, count, size });
+            // 첫 번째 찾은 것을 바로 반환 (가장 작은 크기)
+            profileEnd(timer);
+            return [{ ...bounds, count, size }];
           }
         }
       }
     }
   }
   
-  // 크기순 정렬 (작은 것부터 = 쉬운 것부터)
-  return combinations.sort((a, b) => a.size - b.size);
+  profileEnd(timer);
+  return []; // 힌트 없음
 }
 
 // 힌트 찾기 및 표시
@@ -500,6 +586,7 @@ function findAndShowHint() {
   const pairs = findAdjacentPairs();
   if (pairs.length > 0) {
     currentHint = pairs[0];
+    combo = 0; // 5초 무활동으로 힌트 표시 시 콤보 리셋
     render();
     return;
   }
@@ -508,6 +595,7 @@ function findAndShowHint() {
   const combinations = findAllCombinations();
   if (combinations.length > 0) {
     currentHint = combinations[0];
+    combo = 0; // 5초 무활동으로 힌트 표시 시 콤보 리셋
     render();
     return;
   }
@@ -597,7 +685,10 @@ canvas.addEventListener('mouseup', (e) => {
     removeBlocks(bounds);
     score += count;
     updateScore();
-    audioManager.playSuccess();
+    
+    // 콤보 증가 및 사운드 재생
+    audioManager.playSuccess(combo);
+    combo++;
     
     // 힌트 영역을 맞췄는지 확인 후 제거
     if (isHintMatch(bounds)) {
@@ -615,6 +706,7 @@ canvas.addEventListener('mouseup', (e) => {
   } else if (count > 0) {
     // 실패: 효과음만 (힌트는 유지)
     audioManager.playFail();
+    combo = 0; // 콤보 리셋
     // 힌트가 없는 상태라면 타이머 리셋
     if (!currentHint) {
       recordActivity();
@@ -640,11 +732,17 @@ canvas.addEventListener('mouseleave', () => {
 
 // ========== 렌더링 ==========
 function render() {
+  const timer = profileStart('render');
   // 배경 클리어
   ctx.fillStyle = '#fafafa';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // 보드 그리기
+  // 폰트 설정을 한 번만 (루프 밖에서)
+  ctx.font = 'bold 24px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  // 보드 그리기 - 배경과 숫자
   for (let y = 0; y < BOARD_HEIGHT; y++) {
     for (let x = 0; x < BOARD_WIDTH; x++) {
       const cell = board[y][x];
@@ -664,18 +762,29 @@ function render() {
         
         // 숫자 그리기
         ctx.fillStyle = '#333';
-        ctx.font = 'bold 24px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
         ctx.fillText(cell.value, px + CELL_SIZE / 2, py + CELL_SIZE / 2);
       }
-      
-      // 격자선
-      ctx.strokeStyle = '#bbb';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
     }
   }
+  
+  // 격자선을 한 번에 그리기 (성능 향상)
+  ctx.strokeStyle = '#bbb';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  
+  // 세로선
+  for (let x = 0; x <= BOARD_WIDTH; x++) {
+    ctx.moveTo(x * CELL_SIZE, 0);
+    ctx.lineTo(x * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE);
+  }
+  
+  // 가로선
+  for (let y = 0; y <= BOARD_HEIGHT; y++) {
+    ctx.moveTo(0, y * CELL_SIZE);
+    ctx.lineTo(BOARD_WIDTH * CELL_SIZE, y * CELL_SIZE);
+  }
+  
+  ctx.stroke();
   
   // 힌트 표시 (선택 영역보다 먼저)
   if (currentHint && !isDragging) {
@@ -724,16 +833,21 @@ function render() {
   
   // 파티클 렌더링 (맨 위에 그리기)
   renderParticles(ctx);
+  profileEnd(timer);
 }
 
 // ========== 게임 루프 ==========
 function gameLoop() {
+  const timer = profileStart('gameLoop');
   if (gameRunning || confettiParticles.length > 0) {
     updateParticles();
     updateConfetti();
     render();
     renderConfetti(); // 별도 캔버스에 렌더링
+    profileEnd(timer);
     requestAnimationFrame(gameLoop);
+  } else {
+    profileEnd(timer);
   }
 }
 
@@ -789,7 +903,152 @@ testConfettiBtn.addEventListener('click', () => {
   }
   
   console.log('현재 컨페티 개수:', confettiParticles.length);
-  alert('컨페티 테스트! 콘솔을 확인하세요.');
+});
+
+// 자동 블록 제거 (10번)
+autoRemoveBtn.addEventListener('click', () => {
+  if (!gameRunning) {
+    console.log('⚠️ 게임이 실행 중이 아닙니다.');
+    alert('게임이 실행 중이 아닙니다.');
+    return;
+  }
+  
+  if (isAutoRemoving) {
+    console.log('⚠️ 이미 자동 제거가 진행 중입니다.');
+    return;
+  }
+  
+  console.log('🤖 자동 제거 시작 (10번)');
+  isAutoRemoving = true;
+  
+  let count = 0;
+  const maxAttempts = 10;
+  
+  const autoRemoveOnce = () => {
+    if (count >= maxAttempts || !gameRunning) {
+      console.log(`✅ 자동 제거 완료 (${count}번 성공)`);
+      isAutoRemoving = false;
+      return;
+    }
+    
+    // 힌트 로직과 동일하게 제거 대상 찾기
+    const pairs = findAdjacentPairs();
+    let target = null;
+    
+    if (pairs.length > 0) {
+      target = pairs[0];
+    } else {
+      const combinations = findAllCombinations();
+      if (combinations.length > 0) {
+        target = combinations[0];
+      }
+    }
+    
+    if (!target) {
+      console.log('⚠️ 더 이상 제거할 블록이 없습니다.');
+      isAutoRemoving = false;
+      return;
+    }
+    
+    // 사용자처럼 선택 영역 표시 (녹색 박스)
+    startCell = { x: target.startX, y: target.startY };
+    currentCell = { x: target.endX, y: target.endY };
+    isDragging = true;
+    render(); // 녹색 선택 박스 표시
+    
+    // 100ms 후 실제 제거 (선택 박스를 보여주기 위한 딜레이)
+    setTimeout(() => {
+      const bounds = { 
+        startX: target.startX, 
+        startY: target.startY, 
+        endX: target.endX, 
+        endY: target.endY 
+      };
+      
+      // 블록 제거 전 파티클 생성
+      for (let y = bounds.startY; y <= bounds.endY; y++) {
+        for (let x = bounds.startX; x <= bounds.endX; x++) {
+          if (!board[y][x].isEmpty) {
+            const px = x * CELL_SIZE + CELL_SIZE / 2;
+            const py = y * CELL_SIZE + CELL_SIZE / 2;
+            const particleCount = 3 + Math.floor(Math.random() * 3);
+            createParticles(px, py, particleCount, board[y][x].value);
+          }
+        }
+      }
+      
+      // 블록 제거 및 점수 증가 (사용자 제거와 동일하게)
+      const { count: blockCount } = calculateSum(bounds);
+      removeBlocks(bounds);
+      score += blockCount;
+      updateScore();
+      
+      // 콤보 증가 및 사운드 재생 (사용자와 동일)
+      audioManager.playSuccess(combo);
+      combo++;
+      
+      // 힌트 영역을 맞췄는지 확인 후 제거
+      if (isHintMatch(bounds)) {
+        currentHint = null;
+      }
+      
+      // 성공했으므로 타이머 리셋
+      recordActivity();
+      
+      console.log(`제거 ${count + 1}/${maxAttempts} 완료 (+${blockCount}점, 콤보: ${combo})`);
+      count++;
+      
+      // 선택 상태 초기화
+      isDragging = false;
+      startCell = null;
+      currentCell = null;
+      render();
+      
+      // 모든 블록 제거 체크
+      const allEmpty = board.every(row => row.every(cell => cell.isEmpty));
+      if (allEmpty) {
+        console.log('🎊 모든 블록이 제거되었습니다!');
+        endGame();
+        return;
+      }
+      
+      // 다음 제거 (200ms 딜레이)
+      setTimeout(autoRemoveOnce, 200);
+    }, 100);
+  };
+  
+  autoRemoveOnce();
+});
+
+// 프로파일링 토글
+toggleProfilingBtn.addEventListener('click', () => {
+  profilingEnabled = !profilingEnabled;
+  toggleProfilingBtn.textContent = profilingEnabled ? '📊 프로파일링 ON' : '📊 프로파일링 OFF';
+  console.log(`프로파일링: ${profilingEnabled ? 'ON' : 'OFF'}`);
+  
+  if (profilingEnabled) {
+    // 통계 초기화
+    for (const key in performanceStats) {
+      performanceStats[key] = [];
+    }
+    console.log('성능 측정 시작... 자동 제거를 실행하거나 게임을 플레이하세요.');
+  }
+});
+
+// 성능 통계 표시
+showStatsBtn.addEventListener('click', () => {
+  const stats = getProfilingStats();
+  console.log('========== 성능 통계 (ms) ==========');
+  console.table(stats);
+  
+  if (Object.keys(stats).length === 0) {
+    alert('프로파일링 데이터가 없습니다.\n"📊 프로파일링 ON" 버튼을 눌러 측정을 시작하세요.');
+  } else {
+    const summary = Object.entries(stats)
+      .map(([key, val]) => `${key}:\n  평균 ${val.avg}ms | 최대 ${val.max}ms | 최소 ${val.min}ms (${val.count}회)`)
+      .join('\n\n');
+    alert('성능 통계 (콘솔에서 자세히 확인):\n\n' + summary);
+  }
 });
 
 // ========== 윈도우 리사이즈 대응 ==========

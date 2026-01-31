@@ -115,6 +115,11 @@ body {
   z-index: 1000;
 }
 
+/* 신기록일 때 모달 배경을 더 밝게 (컨페티가 잘 보이도록) */
+.modal.new-record {
+  background: rgba(0, 0, 0, 0.3);
+}
+
 .modal.hidden {
   display: none;
 }

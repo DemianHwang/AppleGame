@@ -47,8 +47,8 @@ class AudioManager {
     this.bgm.currentTime = 0;
   }
 
-  // 성공 효과음 (경쾌한 벨 소리)
-  playSuccess() {
+  // 성공 효과음 (경쾌한 벨 소리) - 콤보 레벨에 따라 음높이 증가
+  playSuccess(comboLevel = 0) {
     if (this.isMuted || !this.audioContext) return;
     
     const ctx = this.audioContext;
@@ -58,10 +58,16 @@ class AudioManager {
     oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
     
-    // 화음 만들기 (C, E, G)
-    oscillator.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-    oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.05); // E5
-    oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.1); // G5
+    // 콤보 레벨당 한음(2 semitones = whole step) 올림
+    // 반음 = 2^(1/12), 한음 = 2^(2/12) ≈ 1.122
+    // 최대 12 콤보로 제한
+    const cappedCombo = Math.min(comboLevel, 12);
+    const pitchMultiplier = Math.pow(2, (cappedCombo * 2) / 12);
+    
+    // 화음 만들기 (C, E, G) + 콤보 보정
+    oscillator.frequency.setValueAtTime(523.25 * pitchMultiplier, ctx.currentTime); // C5
+    oscillator.frequency.setValueAtTime(659.25 * pitchMultiplier, ctx.currentTime + 0.05); // E5
+    oscillator.frequency.setValueAtTime(783.99 * pitchMultiplier, ctx.currentTime + 0.1); // G5
     
     oscillator.type = 'sine';
     gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
