@@ -20,6 +20,10 @@ let isDragging = false;
 let startCell = null;
 let currentCell = null;
 
+// 힌트 상태
+let currentHint = null;  // { startX, startY, endX, endY }
+let hintTimeout = null;
+
 // ========== DOM 요소 ==========
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -63,6 +67,12 @@ function startGame() {
   // BGM 재생
   audioManager.playBGM();
   
+  // 힌트 초기화
+  currentHint = null;
+  if (hintTimeout) {
+    clearTimeout(hintTimeout);
+  }
+  
   // 타이머 시작
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(() => {
@@ -74,6 +84,11 @@ function startGame() {
     }
   }, 1000);
   
+  // 5초 후 첫 힌트 표시
+  hintTimeout = setTimeout(() => {
+    findAndShowHint();
+  }, 5000);
+  
   render();
 }
 
@@ -82,6 +97,13 @@ function endGame() {
   gameRunning = false;
   clearInterval(timerInterval);
   audioManager.stopBGM();
+  
+  // 힌트 타이머 정리
+  if (hintTimeout) {
+    clearTimeout(hintTimeout);
+    hintTimeout = null;
+  }
+  currentHint = null;
   
   finalScoreDisplay.textContent = score;
   gameOverModal.classList.remove('hidden');
@@ -172,6 +194,122 @@ function removeBlocks(bounds) {
   }
 }
 
+// ========== 힌트 시스템 ==========
+// 인접한 2개 블록 찾기 (최우선)
+function findAdjacentPairs() {
+  const pairs = [];
+  
+  for (let y = 0; y < BOARD_HEIGHT; y++) {
+    for (let x = 0; x < BOARD_WIDTH; x++) {
+      if (board[y][x].isEmpty) continue;
+      
+      const value = board[y][x].value;
+      const target = TARGET_SUM - value;
+      
+      // 오른쪽 확인
+      if (x + 1 < BOARD_WIDTH && 
+          !board[y][x + 1].isEmpty && 
+          board[y][x + 1].value === target) {
+        pairs.push({ 
+          startX: x, startY: y, 
+          endX: x + 1, endY: y, 
+          size: 2 
+        });
+      }
+      
+      // 아래쪽 확인
+      if (y + 1 < BOARD_HEIGHT && 
+          !board[y + 1][x].isEmpty && 
+          board[y + 1][x].value === target) {
+        pairs.push({ 
+          startX: x, startY: y, 
+          endX: x, endY: y + 1, 
+          size: 2 
+        });
+      }
+    }
+  }
+  
+  return pairs;
+}
+
+// 모든 가능한 조합 찾기 (크기순)
+function findAllCombinations() {
+  const combinations = [];
+  
+  // 모든 직사각형 영역 탐색
+  for (let sy = 0; sy < BOARD_HEIGHT; sy++) {
+    for (let sx = 0; sx < BOARD_WIDTH; sx++) {
+      for (let ey = sy; ey < BOARD_HEIGHT; ey++) {
+        for (let ex = sx; ex < BOARD_WIDTH; ex++) {
+          const bounds = { startX: sx, startY: sy, endX: ex, endY: ey };
+          const { sum, count } = calculateSum(bounds);
+          
+          if (sum === TARGET_SUM && count >= 2) {
+            const size = (ex - sx + 1) * (ey - sy + 1);
+            combinations.push({ ...bounds, count, size });
+          }
+        }
+      }
+    }
+  }
+  
+  // 크기순 정렬 (작은 것부터 = 쉬운 것부터)
+  return combinations.sort((a, b) => a.size - b.size);
+}
+
+// 힌트 찾기 및 표시
+function findAndShowHint() {
+  if (!gameRunning) return;
+  
+  // 1순위: 인접 2개 (최우선)
+  const pairs = findAdjacentPairs();
+  if (pairs.length > 0) {
+    currentHint = pairs[0];
+    render();
+    return;
+  }
+  
+  // 2/3순위: 작은 영역부터
+  const combinations = findAllCombinations();
+  if (combinations.length > 0) {
+    currentHint = combinations[0];
+    render();
+    return;
+  }
+  
+  // 힌트 없음
+  currentHint = null;
+  console.log('힌트를 찾을 수 없습니다.');
+}
+
+// 활동 기록 (힌트 타이머 관리)
+function recordActivity() {
+  // 힌트가 표시 중이면 타이머 작동 안 함
+  if (currentHint) {
+    return;
+  }
+  
+  // 힌트 없을 때만 타이머 리셋
+  if (hintTimeout) {
+    clearTimeout(hintTimeout);
+  }
+  
+  hintTimeout = setTimeout(() => {
+    findAndShowHint();
+  }, 5000);
+}
+
+// 힌트 영역 매칭 확인
+function isHintMatch(bounds) {
+  if (!currentHint) return false;
+  
+  return bounds.startX === currentHint.startX &&
+         bounds.startY === currentHint.startY &&
+         bounds.endX === currentHint.endX &&
+         bounds.endY === currentHint.endY;
+}
+
 // ========== 마우스 이벤트 ==========
 canvas.addEventListener('mousedown', (e) => {
   if (!gameRunning) return;
@@ -215,14 +353,25 @@ canvas.addEventListener('mouseup', (e) => {
     updateScore();
     audioManager.playSuccess();
     
+    // 힌트 영역을 맞췄는지 확인
+    if (isHintMatch(bounds)) {
+      // 힌트 제거 및 타이머 재시작
+      currentHint = null;
+      recordActivity();
+    }
+    
     // 모든 블록 제거 체크
     const allEmpty = board.every(row => row.every(cell => cell.isEmpty));
     if (allEmpty) {
       endGame();
     }
   } else if (count > 0) {
-    // 실패: 효과음만
+    // 실패: 효과음만 (힌트는 유지)
     audioManager.playFail();
+    // 힌트가 없는 상태라면 타이머 리셋
+    if (!currentHint) {
+      recordActivity();
+    }
   }
   
   startCell = null;
@@ -279,6 +428,25 @@ function render() {
       ctx.lineWidth = 1;
       ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
     }
+  }
+  
+  // 힌트 표시 (선택 영역보다 먼저)
+  if (currentHint && !isDragging) {
+    const px = currentHint.startX * CELL_SIZE;
+    const py = currentHint.startY * CELL_SIZE;
+    const width = (currentHint.endX - currentHint.startX + 1) * CELL_SIZE;
+    const height = (currentHint.endY - currentHint.startY + 1) * CELL_SIZE;
+    
+    // 파란색 반투명 박스
+    ctx.fillStyle = 'rgba(33, 150, 243, 0.25)';
+    ctx.fillRect(px, py, width, height);
+    
+    // 파란색 점선 테두리
+    ctx.strokeStyle = '#2196f3';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10, 5]);
+    ctx.strokeRect(px, py, width, height);
+    ctx.setLineDash([]);  // 실선으로 복원
   }
   
   // 선택 영역 표시
