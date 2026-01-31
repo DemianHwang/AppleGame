@@ -7,7 +7,9 @@ class AudioManager {
     this.audioContext = null;
     
     // BGM - 로컬 MP3 파일 사용 (public/audio/bgm.mp3)
-    this.bgm = new Audio('/audio/bgm.mp3');
+    // Vite base URL 적용 (GitHub Pages 등 서브경로 배포 지원)
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    this.bgm = new Audio(`${baseUrl}audio/bgm.mp3`);
     this.bgm.loop = true;
     this.bgm.volume = 0.3;
     

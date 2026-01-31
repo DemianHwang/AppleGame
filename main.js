@@ -237,11 +237,14 @@ function calculateCanvasSize() {
   const sumDisplay = document.querySelector('.sum-display');
   const orientationWarning = document.getElementById('orientationWarning');
   
-  // 컨테이너 여백 및 패딩 고려
-  const containerPadding = 48; // 24px * 2
-  const headerHeight = header ? header.offsetHeight + 16 : 80; // 16px margin
-  const sumDisplayHeight = sumDisplay ? sumDisplay.offsetHeight + 12 : 60; // 12px margin
-  const extraSpace = 40; // 추가 여백
+  // 모바일 여부 확인
+  const isMobile = window.innerWidth < 768;
+  
+  // 컨테이너 여백 및 패딩 고려 (모바일: 12px*2, 데스크톱: 24px*2)
+  const containerPadding = isMobile ? 24 : 48;
+  const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);
+  const sumDisplayHeight = sumDisplay ? sumDisplay.offsetHeight + (isMobile ? 8 : 12) : (isMobile ? 48 : 60);
+  const extraSpace = isMobile ? 20 : 40; // 추가 여백
   
   // 세로 모드 안내 배너 높이 고려
   const orientationWarningHeight = (orientationWarning && !orientationWarning.classList.contains('hidden')) 
