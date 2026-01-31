@@ -238,7 +238,7 @@ function calculateCanvasSize() {
   const orientationWarning = document.getElementById('orientationWarning');
   
   // 모바일 여부 확인
-  const isMobile = window.innerWidth < 768;
+  const isMobile = window.innerWidth <= 1024;
   
   // 컨테이너 여백 및 패딩 고려 (모바일: 12px*2, 데스크톱: 24px*2)
   const containerPadding = isMobile ? 24 : 48;
@@ -1312,7 +1312,7 @@ function checkOrientation() {
   }
   
   const isPortrait = window.innerHeight > window.innerWidth;
-  const isMobile = window.innerWidth < 768;
+  const isMobile = window.innerWidth <= 1024;
   
   // 모바일 세로 모드일 때만 경고 표시
   if (isMobile && isPortrait) {

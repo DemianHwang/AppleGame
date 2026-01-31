@@ -27,7 +27,7 @@ body {
 }
 
 /* 모바일에서만 배너가 보이므로 게임 컨테이너 조정 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .game-container {
     margin-top: 0;
   }
@@ -46,7 +46,7 @@ body {
 }
 
 /* 모바일 최적화 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .game-container {
     border-radius: 0;
     padding: 12px;
@@ -70,7 +70,7 @@ body {
 }
 
 /* 모바일 헤더 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .game-header {
     padding: 8px 12px;
     margin-bottom: 8px;
@@ -123,7 +123,7 @@ body {
 }
 
 /* 모바일에서 캔버스 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   #gameCanvas {
     border-width: 1px;
     border-radius: 4px;
@@ -144,7 +144,7 @@ body {
 }
 
 /* 모바일 합계 표시 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .sum-display {
     font-size: 14px;
     padding: 8px;
@@ -201,7 +201,7 @@ body {
 }
 
 /* 모바일 모달 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .modal-content {
     padding: 24px;
     min-width: 250px;
@@ -387,7 +387,7 @@ body {
 }
 
 /* 모바일 디버그 패널 */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .debug-panel {
     right: 16px;
     bottom: 70px;
@@ -531,14 +531,14 @@ body {
 }
 
 /* 데스크톱에서는 안내 메시지 숨김 */
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .orientation-warning {
     display: none !important;
   }
 }
 
 /* ========== 점수/타이머 반응형 ========== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .score-display,
   .timer-display {
     font-size: 16px;
@@ -550,7 +550,7 @@ body {
 }
 
 /* ========== 버튼 반응형 ========== */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .restart-btn-floating,
   .debug-toggle-btn {
     width: 48px;
