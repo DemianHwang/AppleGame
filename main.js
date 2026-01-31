@@ -261,10 +261,13 @@ function calculateCanvasSize() {
     // 사이드바 너비: header의 실제 너비 또는 기본값 100px
     const sidebarWidth = header ? header.offsetWidth : 100;
     
-    // 가로모드에서는 뷰포트 높이를 직접 사용 (padding: 0 이므로)
-    // 여유 공간 없이 최대한 활용
+    // 하단 safe area (제스처 영역) 가져오기
+    const safeAreaBottomStr = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom');
+    const safeAreaBottom = parseFloat(safeAreaBottomStr) || 0;
+    
+    // 가로모드에서는 뷰포트 높이에서 safe area 제외
     availableWidth = viewportWidth - sidebarWidth;
-    availableHeight = viewportHeight - orientationWarningHeight;
+    availableHeight = viewportHeight - orientationWarningHeight - safeAreaBottom;
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);

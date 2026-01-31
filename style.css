@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+/* Safe area 값을 CSS 변수로 노출 (JavaScript에서 사용) */
+:root {
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -123,7 +128,32 @@ body {
 
 /* 데스크톱에서는 가로 배치 유지 */
 @media (min-width: 1025px) {
+  .game-container {
+    flex-direction: column !important; /* 세로 레이아웃 (헤더 위, 게임 아래) */
+  }
+  
+  .game-header {
+    flex-direction: row !important; /* 헤더 내부는 가로 배치 */
+    width: 100% !important;
+    height: auto !important;
+    min-width: unset !important;
+    max-width: unset !important;
+  }
+  
+  .game-header-top {
+    display: contents !important;
+  }
+  
+  .game-header-bottom {
+    display: none !important; /* 데스크탑에서는 사이드바 버튼 숨김 */
+  }
+  
   .header-buttons {
+    flex-direction: row !important;
+  }
+  
+  .score-display,
+  .timer-display {
     flex-direction: row !important;
   }
 }
@@ -220,13 +250,14 @@ body {
     height: 100vh;
     height: 100dvh; /* 동적 뷰포트 높이 */
     overflow: hidden;
-    padding: 0; /* 패딩 제거 */
+    padding: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0); /* 하단 제스처 영역 확보 */
     box-sizing: border-box;
   }
   
   #gameCanvas {
     flex-shrink: 0;
-    max-height: 100dvh; /* 최대 높이 제한 */
+    max-height: calc(100dvh - env(safe-area-inset-bottom, 0)); /* safe area 제외 */
   }
   
   /* 가로모드에서는 합계 표시 숨기기 (공간 절약) */
