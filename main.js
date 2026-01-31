@@ -4,9 +4,12 @@ import AudioManager from './audio.js';
 // ========== 상수 정의 ==========
 const BOARD_WIDTH = 17;
 const BOARD_HEIGHT = 10;
-const CELL_SIZE = 50;
 const TIME_LIMIT = 120;
 const TARGET_SUM = 10;
+
+// ========== 반응형 설정 ==========
+let CELL_SIZE = 50; // 동적으로 계산됨
+let canvasScale = 1; // CSS 크기 대비 내부 해상도 비율
 
 // ========== 게임 상태 ==========
 let board = [];
@@ -100,19 +103,21 @@ class Particle {
     this.y = y;
     this.color = color;
     
-    // 속도 (랜덤 방향으로 폭발)
+    // 속도 (랜덤 방향으로 폭발) - 셀 크기에 비례
     const angle = Math.random() * Math.PI * 2;
-    const speed = 2 + Math.random() * 4;
+    const speedScale = Math.max(0.5, CELL_SIZE / 50); // 기준: 50px
+    const speed = (2 + Math.random() * 4) * speedScale;
     this.vx = Math.cos(angle) * speed;
-    this.vy = Math.sin(angle) * speed - 2;  // 위로 더 튀도록
+    this.vy = Math.sin(angle) * speed - 2 * speedScale;  // 위로 더 튀도록
     
-    // 크기와 수명
-    this.size = 6 + Math.random() * 6; // 6~12로 증가
+    // 크기와 수명 - 셀 크기에 비례
+    const sizeScale = Math.max(0.5, Math.min(1.5, CELL_SIZE / 50));
+    this.size = (6 + Math.random() * 6) * sizeScale;
     this.life = 1.0;
     this.decay = 0.015 + Math.random() * 0.015;
     
     // 중력
-    this.gravity = 0.15;
+    this.gravity = 0.15 * speedScale;
   }
   
   update() {
@@ -225,15 +230,89 @@ class Confetti {
   }
 }
 
+// ========== 반응형 캔버스 크기 계산 ==========
+function calculateCanvasSize() {
+  const container = document.querySelector('.game-container');
+  const header = document.querySelector('.game-header');
+  const sumDisplay = document.querySelector('.sum-display');
+  
+  // 컨테이너 여백 및 패딩 고려
+  const containerPadding = 48; // 24px * 2
+  const headerHeight = header ? header.offsetHeight + 16 : 80; // 16px margin
+  const sumDisplayHeight = sumDisplay ? sumDisplay.offsetHeight + 12 : 60; // 12px margin
+  const extraSpace = 40; // 추가 여백
+  
+  // 사용 가능한 뷰포트 크기
+  const availableWidth = window.innerWidth - containerPadding;
+  const availableHeight = window.innerHeight - containerPadding - headerHeight - sumDisplayHeight - extraSpace;
+  
+  // 보드 비율 유지하면서 최대 크기 계산
+  const aspectRatio = BOARD_WIDTH / BOARD_HEIGHT;
+  
+  let canvasWidth = availableWidth;
+  let canvasHeight = canvasWidth / aspectRatio;
+  
+  // 높이가 넘치면 높이 기준으로 재계산
+  if (canvasHeight > availableHeight) {
+    canvasHeight = availableHeight;
+    canvasWidth = canvasHeight * aspectRatio;
+  }
+  
+  // 최소/최대 크기 제한
+  const minCellSize = 20; // 최소 셀 크기
+  const maxCellSize = 60; // 최대 셀 크기
+  
+  const minWidth = BOARD_WIDTH * minCellSize;
+  const maxWidth = BOARD_WIDTH * maxCellSize;
+  
+  canvasWidth = Math.max(minWidth, Math.min(maxWidth, canvasWidth));
+  canvasHeight = canvasWidth / aspectRatio;
+  
+  // 셀 크기 계산
+  const cellSize = canvasWidth / BOARD_WIDTH;
+  
+  return {
+    width: Math.floor(canvasWidth),
+    height: Math.floor(canvasHeight),
+    cellSize: cellSize
+  };
+}
+
+function resizeCanvas() {
+  const size = calculateCanvasSize();
+  
+  // 캔버스 내부 해상도 설정
+  canvas.width = size.width;
+  canvas.height = size.height;
+  
+  // CSS 크기는 같게 (1:1 비율)
+  canvas.style.width = size.width + 'px';
+  canvas.style.height = size.height + 'px';
+  
+  // 셀 크기 업데이트
+  CELL_SIZE = size.cellSize;
+  canvasScale = 1; // 내부 해상도와 CSS 크기가 같으므로 1:1
+  
+  // 컨페티 캔버스도 업데이트
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+  
+  // 재렌더링
+  if (gameRunning) {
+    render();
+  }
+  
+  console.log(`Canvas resized: ${size.width}x${size.height}, Cell: ${CELL_SIZE.toFixed(1)}px`);
+}
+
 // ========== DOM 요소 ==========
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const confettiCanvas = document.getElementById('confettiCanvas');
 const confettiCtx = confettiCanvas.getContext('2d');
 
-// 컨페티 캔버스 크기를 전체 화면으로 설정
-confettiCanvas.width = window.innerWidth;
-confettiCanvas.height = window.innerHeight;
+// 초기 캔버스 크기 설정
+resizeCanvas();
 
 const scoreDisplay = document.getElementById('score');
 const timerDisplay = document.getElementById('timer');
@@ -397,11 +476,37 @@ function updateSumDisplay(sum, count) {
 // ========== 좌표 변환 ==========
 function getCellFromMouse(e) {
   const rect = canvas.getBoundingClientRect();
-  const mouseX = e.clientX - rect.left;
-  const mouseY = e.clientY - rect.top;
+  
+  // CSS 크기 대비 내부 해상도 스케일 계산
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  
+  // 마우스 좌표를 캔버스 내부 좌표로 변환
+  const mouseX = (e.clientX - rect.left) * scaleX;
+  const mouseY = (e.clientY - rect.top) * scaleY;
   
   const x = Math.floor(mouseX / CELL_SIZE);
   const y = Math.floor(mouseY / CELL_SIZE);
+  
+  if (x >= 0 && x < BOARD_WIDTH && y >= 0 && y < BOARD_HEIGHT) {
+    return { x, y };
+  }
+  return null;
+}
+
+function getCellFromTouch(touch) {
+  const rect = canvas.getBoundingClientRect();
+  
+  // CSS 크기 대비 내부 해상도 스케일 계산
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  
+  // 터치 좌표를 캔버스 내부 좌표로 변환
+  const touchX = (touch.clientX - rect.left) * scaleX;
+  const touchY = (touch.clientY - rect.top) * scaleY;
+  
+  const x = Math.floor(touchX / CELL_SIZE);
+  const y = Math.floor(touchY / CELL_SIZE);
   
   if (x >= 0 && x < BOARD_WIDTH && y >= 0 && y < BOARD_HEIGHT) {
     return { x, y };
@@ -730,6 +835,112 @@ canvas.addEventListener('mouseleave', () => {
   }
 });
 
+// ========== 터치 이벤트 ==========
+canvas.addEventListener('touchstart', (e) => {
+  if (!gameRunning) return;
+  
+  e.preventDefault(); // 스크롤 방지
+  
+  const touch = e.touches[0];
+  const cell = getCellFromTouch(touch);
+  if (cell) {
+    isDragging = true;
+    startCell = cell;
+    currentCell = cell;
+    render();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (e) => {
+  if (!gameRunning || !isDragging) return;
+  
+  e.preventDefault(); // 스크롤 방지
+  
+  const touch = e.touches[0];
+  const cell = getCellFromTouch(touch);
+  if (cell) {
+    currentCell = cell;
+    
+    const bounds = getSelectionBounds();
+    const { sum, count } = calculateSum(bounds);
+    updateSumDisplay(sum, count);
+    
+    render();
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  if (!gameRunning || !isDragging) return;
+  
+  e.preventDefault();
+  
+  isDragging = false;
+  
+  const bounds = getSelectionBounds();
+  const { sum, count } = calculateSum(bounds);
+  
+  if (sum === TARGET_SUM && count > 0) {
+    // 파티클 생성 (제거 전에 블록 정보 저장)
+    for (let y = bounds.startY; y <= bounds.endY; y++) {
+      for (let x = bounds.startX; x <= bounds.endX; x++) {
+        if (!board[y][x].isEmpty) {
+          const px = x * CELL_SIZE + CELL_SIZE / 2;
+          const py = y * CELL_SIZE + CELL_SIZE / 2;
+          const particleCount = 3 + Math.floor(Math.random() * 3);
+          createParticles(px, py, particleCount, board[y][x].value);
+        }
+      }
+    }
+    
+    // 성공: 블록 제거 및 점수 추가
+    removeBlocks(bounds);
+    score += count;
+    updateScore();
+    
+    // 콤보 증가 및 사운드 재생
+    audioManager.playSuccess(combo);
+    combo++;
+    
+    // 힌트 영역을 맞췄는지 확인 후 제거
+    if (isHintMatch(bounds)) {
+      currentHint = null;
+    }
+    
+    // 성공했으므로 항상 타이머 리셋
+    recordActivity();
+    
+    // 모든 블록 제거 체크
+    const allEmpty = board.every(row => row.every(cell => cell.isEmpty));
+    if (allEmpty) {
+      endGame();
+    }
+  } else if (count > 0) {
+    // 실패: 효과음만 (힌트는 유지)
+    audioManager.playFail();
+    combo = 0; // 콤보 리셋
+    // 힌트가 없는 상태라면 타이머 리셋
+    if (!currentHint) {
+      recordActivity();
+    }
+  }
+  
+  startCell = null;
+  currentCell = null;
+  updateSumDisplay(0, 0);
+  
+  render();
+}, { passive: false });
+
+canvas.addEventListener('touchcancel', () => {
+  if (isDragging) {
+    isDragging = false;
+    startCell = null;
+    currentCell = null;
+    updateSumDisplay(0, 0);
+    render();
+  }
+});
+
 // ========== 렌더링 ==========
 function render() {
   const timer = profileStart('render');
@@ -737,8 +948,9 @@ function render() {
   ctx.fillStyle = '#fafafa';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // 폰트 설정을 한 번만 (루프 밖에서)
-  ctx.font = 'bold 24px sans-serif';
+  // 폰트 설정을 한 번만 (루프 밖에서) - 셀 크기에 비례
+  const fontSize = Math.max(12, Math.min(24, CELL_SIZE * 0.48));
+  ctx.font = `bold ${fontSize}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
@@ -1052,10 +1264,34 @@ showStatsBtn.addEventListener('click', () => {
 });
 
 // ========== 윈도우 리사이즈 대응 ==========
+let resizeTimeout;
 window.addEventListener('resize', () => {
-  confettiCanvas.width = window.innerWidth;
-  confettiCanvas.height = window.innerHeight;
+  // 리사이즈 이벤트가 연속으로 발생하는 것을 방지 (디바운싱)
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    resizeCanvas();
+    checkOrientation();
+  }, 150);
 });
+
+// ========== 화면 방향 체크 ==========
+function checkOrientation() {
+  const orientationWarning = document.getElementById('orientationWarning');
+  if (!orientationWarning) return;
+  
+  const isPortrait = window.innerHeight > window.innerWidth;
+  const isMobile = window.innerWidth < 768;
+  
+  // 모바일 세로 모드일 때만 경고 표시
+  if (isMobile && isPortrait) {
+    orientationWarning.classList.remove('hidden');
+  } else {
+    orientationWarning.classList.add('hidden');
+  }
+}
+
+// 초기 체크
+checkOrientation();
 
 // ========== 게임 시작 ==========
 startGame();

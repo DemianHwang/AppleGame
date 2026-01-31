@@ -2,7 +2,10 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>사과 게임 (Fruit Box)</title>
   <link rel="stylesheet" href="./style.css">
 </head>
@@ -22,8 +25,8 @@
         <button id="muteBtn" class="mute-btn" title="음소거 토글">🔊</button>
       </div>
 
-      <!-- 게임 보드 Canvas -->
-      <canvas id="gameCanvas" width="850" height="500"></canvas>
+      <!-- 게임 보드 Canvas (크기는 JS에서 동적으로 설정) -->
+      <canvas id="gameCanvas"></canvas>
 
       <!-- 선택 영역 합계 표시 -->
       <div id="sumDisplay" class="sum-display"></div>
@@ -51,6 +54,14 @@
 
     <!-- 컨페티 전용 캔버스 (최상위 레이어) -->
     <canvas id="confettiCanvas" class="confetti-canvas"></canvas>
+
+    <!-- 세로 모드 안내 메시지 (모바일만) -->
+    <div id="orientationWarning" class="orientation-warning hidden">
+      <div class="orientation-content">
+        <div class="rotate-icon">📱↻</div>
+        <p>가로 모드로 전환하면<br>더 편하게 플레이할 수 있어요!</p>
+      </div>
+    </div>
 
     <!-- 디버그 패널 -->
     <div id="debugPanel" class="debug-panel hidden">
