@@ -73,6 +73,9 @@ body {
     height: 100vh;
     height: 100dvh; /* 동적 뷰포트 높이 (브라우저 UI 제외) */
     padding: 0 !important; /* safe-area 패딩 제거 */
+    /* body의 flex 정렬도 변경 - #app을 상단/좌측에 붙임 */
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
   }
   
   #app {
@@ -80,7 +83,9 @@ body {
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
-    align-items: stretch; /* 수직 중앙 정렬 대신 stretch로 변경 */
+    /* #app의 flex 정렬도 변경 */
+    justify-content: flex-start !important;
+    align-items: stretch !important;
   }
   
   .game-container {
