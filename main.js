@@ -258,16 +258,20 @@ function calculateCanvasSize() {
   
   if (isMobileLandscape) {
     // 모바일 가로모드: 사이드바 레이아웃
-    // 사이드바 너비: header의 실제 너비 또는 기본값 100px
     const sidebarWidth = header ? header.offsetWidth : 100;
     
-    // 하단 safe area (제스처 영역) 가져오기 - 2배 + 추가 여백
+    // safe area 가져오기 (CSS 변수에서)
+    const safeAreaTopStr = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-top');
     const safeAreaBottomStr = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom');
-    const safeAreaBottom = (parseFloat(safeAreaBottomStr) || 0) * 2 + 20;
+    const safeAreaTop = parseFloat(safeAreaTopStr) || 0;
+    const safeAreaBottom = parseFloat(safeAreaBottomStr) || 0;
     
-    // 가로모드에서는 뷰포트 높이에서 safe area 제외
+    // safe area가 있으면 + 8px, 없으면 0
+    const paddingTop = safeAreaTop > 0 ? safeAreaTop + 8 : 0;
+    const paddingBottom = safeAreaBottom > 0 ? safeAreaBottom + 8 : 0;
+    
     availableWidth = viewportWidth - sidebarWidth;
-    availableHeight = viewportHeight - orientationWarningHeight - safeAreaBottom;
+    availableHeight = viewportHeight - orientationWarningHeight - paddingTop - paddingBottom;
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);

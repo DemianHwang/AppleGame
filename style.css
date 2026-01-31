@@ -6,6 +6,7 @@
 
 /* Safe area 값을 CSS 변수로 노출 (JavaScript에서 사용) */
 :root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -245,19 +246,19 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* 캔버스를 상단에 붙임 */
+    justify-content: center; /* safe area 적용 시 중앙 배치 */
     min-width: 0;
     height: 100vh;
-    height: 100dvh; /* 동적 뷰포트 높이 */
+    height: 100dvh;
     overflow: hidden;
-    padding: 0;
-    padding-bottom: calc(env(safe-area-inset-bottom, 0) * 2 + 20px); /* 하단 제스처 영역 2배 + 추가 여백 */
+    /* safe area가 있으면: safe area + 8px, 없으면: 0 (꽉 채움) */
+    padding-top: calc(env(safe-area-inset-top, 0px) + min(8px, env(safe-area-inset-top, 0px)));
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + min(8px, env(safe-area-inset-bottom, 0px)));
     box-sizing: border-box;
   }
   
   #gameCanvas {
     flex-shrink: 0;
-    max-height: calc(100dvh - env(safe-area-inset-bottom, 0) * 2 - 20px); /* safe area 2배 + 추가 여백 제외 */
   }
   
   /* 가로모드에서는 합계 표시 숨기기 (공간 절약) */
