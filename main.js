@@ -158,6 +158,13 @@ const highScoreDisplay = document.getElementById('highScore');
 const newRecordLabel = document.getElementById('newRecordLabel');
 const restartBtn = document.getElementById('restartBtn');
 
+// 디버그 요소
+const debugToggleBtn = document.getElementById('debugToggleBtn');
+const debugPanel = document.getElementById('debugPanel');
+const resetHighScoreBtn = document.getElementById('resetHighScoreBtn');
+const forceGameOverBtn = document.getElementById('forceGameOverBtn');
+const testConfettiBtn = document.getElementById('testConfettiBtn');
+
 // ========== 오디오 매니저 ==========
 const audioManager = new AudioManager();
 
@@ -716,6 +723,46 @@ restartBtn.addEventListener('click', () => {
 
 restartBtnHeader.addEventListener('click', () => {
   startGame();
+});
+
+// ========== 디버그 기능 ==========
+// 디버그 패널 토글
+debugToggleBtn.addEventListener('click', () => {
+  debugPanel.classList.toggle('hidden');
+});
+
+// 최고 점수 리셋
+resetHighScoreBtn.addEventListener('click', () => {
+  localStorage.removeItem('appleGameHighScore');
+  highScore = 0;
+  console.log('✅ 최고 점수가 리셋되었습니다.');
+  alert('최고 점수가 리셋되었습니다!');
+});
+
+// 즉시 게임 종료
+forceGameOverBtn.addEventListener('click', () => {
+  if (gameRunning) {
+    console.log('⏹️ 게임을 강제로 종료합니다.');
+    endGame();
+  } else {
+    console.log('⚠️ 게임이 실행 중이 아닙니다.');
+    alert('게임이 실행 중이 아닙니다.');
+  }
+});
+
+// 컨페티 테스트
+testConfettiBtn.addEventListener('click', () => {
+  console.log('🎉 컨페티 테스트 시작');
+  confettiParticles = []; // 기존 컨페티 제거
+  startConfetti();
+  
+  // gameLoop이 멈춰있을 수 있으니 강제로 시작
+  if (!gameRunning) {
+    gameLoop();
+  }
+  
+  console.log('현재 컨페티 개수:', confettiParticles.length);
+  alert('컨페티 테스트! 콘솔을 확인하세요.');
 });
 
 // ========== 게임 시작 ==========

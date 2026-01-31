@@ -48,6 +48,17 @@
         <button id="restartBtn" class="restart-btn">다시 시작</button>
       </div>
     </div>
+
+    <!-- 디버그 패널 -->
+    <div id="debugPanel" class="debug-panel hidden">
+      <div class="debug-header">🔧 테스트 모드</div>
+      <button id="resetHighScoreBtn" class="debug-btn">🗑️ 최고 점수 리셋</button>
+      <button id="forceGameOverBtn" class="debug-btn">⏹️ 즉시 게임 종료</button>
+      <button id="testConfettiBtn" class="debug-btn">🎉 컨페티 테스트</button>
+    </div>
+    
+    <!-- 디버그 토글 버튼 -->
+    <button id="debugToggleBtn" class="debug-toggle-btn" title="테스트 모드">🔧</button>
   </div>
 
   <script type="module" src="./main.js"></script>
