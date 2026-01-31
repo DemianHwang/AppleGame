@@ -167,26 +167,39 @@ body {
   transform: translateY(0);
 }
 
-/* 상단 다시 시작 버튼 */
-.restart-btn-header {
+/* 다시 시작 플로팅 버튼 (왼쪽 하단) */
+.restart-btn-floating {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  width: 56px;
+  height: 56px;
   background: #f44336;
   color: white;
   border: none;
-  padding: 8px 16px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 6px;
+  border-radius: 50%;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+  transition: all 0.3s ease;
+  z-index: 100;
 }
 
-.restart-btn-header:hover {
+.restart-btn-floating:hover {
   background: #d32f2f;
-  transform: scale(1.05);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(244, 67, 54, 0.6);
 }
 
-.restart-btn-header:active {
+.restart-btn-floating:active {
   transform: scale(0.95);
+}
+
+.restart-btn-floating svg {
+  width: 28px;
+  height: 28px;
 }
 
 /* 신기록 라벨 */
