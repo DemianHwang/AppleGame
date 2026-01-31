@@ -266,9 +266,9 @@ function calculateCanvasSize() {
     const safeAreaTop = parseFloat(safeAreaTopStr) || 0;
     const safeAreaBottom = parseFloat(safeAreaBottomStr) || 0;
     
-    // safe area가 있으면 + 8px, 없으면 0
-    const paddingTop = safeAreaTop > 0 ? safeAreaTop + 8 : 0;
-    const paddingBottom = safeAreaBottom > 0 ? safeAreaBottom + 8 : 0;
+    // safe area와 20px 중 큰 값 사용 (iOS + Android 모두 대응)
+    const paddingTop = Math.max(safeAreaTop, 20);
+    const paddingBottom = Math.max(safeAreaBottom, 20);
     
     availableWidth = viewportWidth - sidebarWidth;
     availableHeight = viewportHeight - orientationWarningHeight - paddingTop - paddingBottom;
