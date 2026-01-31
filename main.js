@@ -260,15 +260,13 @@ function calculateCanvasSize() {
     // 모바일 가로모드: 사이드바 레이아웃 (합계 표시 제거로 높이 최대화)
     const sidebarWidth = header ? header.offsetWidth : 100;
     
-    // game-area의 실제 높이 사용 (가장 정확)
-    const gameArea = document.querySelector('.game-area');
-    const gameAreaHeight = gameArea ? gameArea.clientHeight : viewportHeight;
+    // 캔버스를 배치할 실제 공간 계산
+    // game-container의 실제 크기 사용 (가장 신뢰할 수 있음)
+    const containerRect = container ? container.getBoundingClientRect() : null;
+    const containerActualHeight = containerRect ? containerRect.height : viewportHeight;
     
-    // 여러 높이 중 가장 작은 값 사용 (가장 보수적)
-    const safeHeight = Math.min(viewportHeight, gameAreaHeight, container ? container.clientHeight : viewportHeight);
-    
-    availableWidth = viewportWidth - sidebarWidth - 8; // 여유 공간 8px
-    availableHeight = safeHeight - orientationWarningHeight - 40; // 여유 공간 40px (매우 보수적)
+    availableWidth = viewportWidth - sidebarWidth - 12; // 여유 공간 12px
+    availableHeight = containerActualHeight - orientationWarningHeight - 16; // 컨테이너 기준, 여유 16px
   } else {
     // 세로모드 또는 데스크톱: 기존 레이아웃
     const headerHeight = header ? header.offsetHeight + (isMobile ? 8 : 16) : (isMobile ? 60 : 80);
@@ -589,6 +587,9 @@ function removeBlocks(bounds) {
       board[y][x].isEmpty = true;
     }
   }
+  
+  // 블록 제거 후 항상 힌트 무효화 (제거된 영역이 힌트일 수 있음)
+  currentHint = null;
 }
 
 // ========== 파티클 시스템 ==========
@@ -750,12 +751,7 @@ function findAndShowHint() {
 
 // 활동 기록 (힌트 타이머 관리)
 function recordActivity() {
-  // 힌트가 표시 중이면 타이머 작동 안 함
-  if (currentHint) {
-    return;
-  }
-  
-  // 힌트 없을 때만 타이머 리셋
+  // 항상 타이머 리셋 (힌트 여부와 무관)
   if (hintTimeout) {
     clearTimeout(hintTimeout);
   }
@@ -833,11 +829,7 @@ canvas.addEventListener('mouseup', (e) => {
     audioManager.playSuccess(combo);
     combo++;
     
-    // 힌트 영역을 맞췄는지 확인 후 제거
-    if (isHintMatch(bounds)) {
-      currentHint = null;
-    }
-    
+    // 블록 제거 후 힌트는 이미 removeBlocks에서 무효화됨
     // 성공했으므로 항상 타이머 리셋
     recordActivity();
     
@@ -939,11 +931,7 @@ canvas.addEventListener('touchend', (e) => {
     audioManager.playSuccess(combo);
     combo++;
     
-    // 힌트 영역을 맞췄는지 확인 후 제거
-    if (isHintMatch(bounds)) {
-      currentHint = null;
-    }
-    
+    // 블록 제거 후 힌트는 이미 removeBlocks에서 무효화됨
     // 성공했으므로 항상 타이머 리셋
     recordActivity();
     
@@ -1036,23 +1024,42 @@ function render() {
   
   ctx.stroke();
   
-  // 힌트 표시 (선택 영역보다 먼저)
+  // 힌트 표시 (선택 영역보다 먼저) - 유효성 검증
   if (currentHint && !isDragging) {
-    const px = currentHint.startX * CELL_SIZE;
-    const py = currentHint.startY * CELL_SIZE;
-    const width = (currentHint.endX - currentHint.startX + 1) * CELL_SIZE;
-    const height = (currentHint.endY - currentHint.startY + 1) * CELL_SIZE;
+    // 힌트 영역이 여전히 유효한지 확인 (블록이 비어있지 않은지)
+    let isValid = false;
+    for (let y = currentHint.startY; y <= currentHint.endY; y++) {
+      for (let x = currentHint.startX; x <= currentHint.endX; x++) {
+        if (!board[y][x].isEmpty) {
+          isValid = true;
+          break;
+        }
+      }
+      if (isValid) break;
+    }
     
-    // 파란색 반투명 박스
-    ctx.fillStyle = 'rgba(33, 150, 243, 0.25)';
-    ctx.fillRect(px, py, width, height);
-    
-    // 파란색 점선 테두리
-    ctx.strokeStyle = '#2196f3';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([10, 5]);
-    ctx.strokeRect(px, py, width, height);
-    ctx.setLineDash([]);  // 실선으로 복원
+    // 유효한 힌트만 표시
+    if (isValid) {
+      const px = currentHint.startX * CELL_SIZE;
+      const py = currentHint.startY * CELL_SIZE;
+      const width = (currentHint.endX - currentHint.startX + 1) * CELL_SIZE;
+      const height = (currentHint.endY - currentHint.startY + 1) * CELL_SIZE;
+      
+      // 파란색 반투명 박스
+      ctx.fillStyle = 'rgba(33, 150, 243, 0.25)';
+      ctx.fillRect(px, py, width, height);
+      
+      // 파란색 점선 테두리
+      ctx.strokeStyle = '#2196f3';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 5]);
+      ctx.strokeRect(px, py, width, height);
+      ctx.setLineDash([]);  // 실선으로 복원
+    } else {
+      // 무효한 힌트는 제거하고 새로 찾기
+      currentHint = null;
+      recordActivity(); // 즉시 새 힌트 타이머 시작
+    }
   }
   
   // 선택 영역 표시
