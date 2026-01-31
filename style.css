@@ -249,33 +249,22 @@ body {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  padding: 12px 20px;
+  width: 56px;
+  height: 56px;
   background: #673ab7;
   color: white;
   border: none;
-  border-radius: 28px;
+  border-radius: 50%;
+  font-size: 24px;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(103, 58, 183, 0.4);
   transition: all 0.3s ease;
   z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-}
-
-.debug-icon {
-  font-size: 20px;
-}
-
-.debug-text {
-  font-size: 14px;
-  letter-spacing: 0.5px;
 }
 
 .debug-toggle-btn:hover {
   background: #5e35b1;
-  transform: scale(1.05);
+  transform: scale(1.1);
   box-shadow: 0 6px 16px rgba(103, 58, 183, 0.6);
 }
 
@@ -314,6 +303,7 @@ body {
 
 .debug-btn {
   background: white;
+  color: #333;
   border: 2px solid #ddd;
   padding: 10px 16px;
   font-size: 14px;
@@ -326,6 +316,7 @@ body {
 
 .debug-btn:hover {
   background: #f5f5f5;
+  color: #673ab7;
   border-color: #673ab7;
   transform: translateX(-2px);
 }
